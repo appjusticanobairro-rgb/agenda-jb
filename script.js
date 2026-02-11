@@ -101,10 +101,18 @@ async function salvarDadosCloud(action, data) {
 }
 
 document.addEventListener('DOMContentLoaded', async function () {
+    // Limpar sessão antiga para forçar login
+    localStorage.removeItem('usuarioLogado');
+    usuarioLogado = null;
+
+    // Mostrar login enquanto carrega
+    showLogin();
+
+    // Carregar dados da nuvem (apenas uma vez)
     await carregarDados();
-    renderAgendas();
-    verificarRota(); // Também faremos verificarRota async se necessário
-    aplicarPermissoes();
+
+    // Agora rotear com os dados carregados
+    verificarRota();
 
     // Listener para o Enter na tela de login
     const loginFields = ['loginUser', 'loginPass'];
@@ -124,17 +132,14 @@ document.addEventListener('DOMContentLoaded', async function () {
 window.addEventListener('hashchange', () => verificarRota());
 
 // --- ROTEAMENTO ---
-async function verificarRota() {
-    console.log("--- Iniciando verificarRota (Isolamento Total Cloud) ---");
+function verificarRota() {
+    console.log("--- verificarRota ---");
     const hash = window.location.hash;
     const adminPage = document.getElementById('adminPage');
     const loginSection = document.getElementById('loginSection');
+    const appContainer = document.getElementById('appContainer');
 
-    // Sempre tenta carregar os dados mais recentes antes de rotear
-    await carregarDados();
-
-    console.log("Hash detectado:", hash);
-    console.log("Fluxo de isolamento iniciado...");
+    console.log("Hash:", hash);
 
     // 1. ISOLAMENTO TOTAL: Se houver um slug no hash, tratamos como rota pública
     if (hash && hash.length > 1) {
@@ -156,6 +161,7 @@ async function verificarRota() {
                 document.body.classList.remove('login-active');
                 if (loginSection) loginSection.style.display = 'none';
                 if (adminPage) adminPage.style.display = 'none';
+                if (appContainer) appContainer.style.display = '';
 
                 const hoje = new Date().toISOString().split('T')[0];
                 const foraDaVigencia = (agendaFound.dataInicial && hoje < agendaFound.dataInicial) ||
@@ -187,11 +193,6 @@ async function verificarRota() {
 
     // Usuário Logado - Área Admin
     console.log("Acessando área administrativa.");
-    document.body.classList.remove('no-header');
-    document.body.classList.remove('login-active');
-    if (loginSection) loginSection.style.display = 'none';
-    if (adminPage) adminPage.style.display = 'flex';
-
     mostrarAdmin();
 }
 
@@ -200,13 +201,12 @@ function showLogin() {
     document.body.classList.add('no-header');
     const adminPage = document.getElementById('adminPage');
     const loginSection = document.getElementById('loginSection');
+    const appContainer = document.getElementById('appContainer');
 
+    if (appContainer) appContainer.style.display = 'none';
     if (adminPage) adminPage.style.display = 'none';
     if (loginSection) {
         loginSection.style.display = 'flex';
-        // Limpar campos
-        document.getElementById('loginUser').value = '';
-        document.getElementById('loginPass').value = '';
     }
 }
 
@@ -273,6 +273,12 @@ function mostrarAdmin() {
         return;
     }
     document.body.classList.remove('no-header');
+    document.body.classList.remove('login-active');
+
+    const appContainer = document.getElementById('appContainer');
+    const loginSection = document.getElementById('loginSection');
+    if (appContainer) appContainer.style.display = '';
+    if (loginSection) loginSection.style.display = 'none';
 
     // Safety check for permissions on entry
     if (usuarioLogado.perfil === 'Usuário') {
@@ -283,6 +289,9 @@ function mostrarAdmin() {
     document.getElementById('desativadaPage').classList.remove('active');
     document.getElementById('agendamentoPage').classList.remove('active');
     document.getElementById('confirmacaoPage').classList.remove('active');
+
+    renderAgendas();
+    aplicarPermissoes();
 }
 
 function mostrarPaginaDesativada(titulo, mensagem) {
