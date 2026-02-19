@@ -318,46 +318,59 @@ function mostrarPaginaDesativada(titulo, mensagem) {
 }
 
 function mostrarPaginaAgendamento(agenda) {
-    console.log("Exibindo formulário para agenda:", agenda.nome);
-    document.body.classList.add('no-header');
-    document.body.classList.remove('login-active');
+    console.log("--- mostrarPaginaAgendamento ---", agenda.nome);
+    try {
+        document.body.classList.add('no-header');
+        document.body.classList.remove('login-active');
 
-    if (document.getElementById('adminPage')) document.getElementById('adminPage').style.display = 'none';
-    if (document.getElementById('loginSection')) document.getElementById('loginSection').style.display = 'none';
+        if (document.getElementById('adminPage')) document.getElementById('adminPage').style.display = 'none';
+        if (document.getElementById('loginSection')) document.getElementById('loginSection').style.display = 'none';
 
-    document.getElementById('desativadaPage').classList.remove('active');
-    document.getElementById('agendamentoPage').classList.add('active');
-    document.getElementById('confirmacaoPage').classList.remove('active');
+        document.getElementById('desativadaPage').classList.remove('active');
+        document.getElementById('agendamentoPage').classList.add('active');
+        document.getElementById('confirmacaoPage').classList.remove('active');
 
-    document.getElementById('publicAgendaNome').textContent = agenda.nome;
-    document.getElementById('confirmAgendaNome').textContent = agenda.nome;
+        document.getElementById('publicAgendaNome').textContent = agenda.nome;
+        document.getElementById('confirmAgendaNome').textContent = agenda.nome;
 
-    // Password Field logic
-    const container = document.getElementById('step1Content').querySelector('.form-section');
-    const oldPwd = document.getElementById('publicSenhaRow');
-    if (oldPwd) oldPwd.remove();
+        // Password field injection
+        const container = document.getElementById('step1Content').querySelector('.form-section');
+        if (container) {
+            const oldPwd = document.getElementById('publicSenhaRow');
+            if (oldPwd) oldPwd.remove();
 
-    if (agenda.senha && agenda.senha.trim() !== "") {
-        const pwdHtml = `
-            <div class="form-row-single" id="publicSenhaRow">
-                <label>Senha da Agenda <span class="required">*</span></label>
-                <input type="password" class="form-control" id="publicSenha" placeholder="Informe a senha para agendar">
-            </div>
-        `;
-        container.insertAdjacentHTML('afterbegin', pwdHtml);
+            if (agenda.senha && agenda.senha.trim() !== "") {
+                const pwdHtml = `
+                    <div class="form-row-single" id="publicSenhaRow">
+                        <label>Senha da Agenda <span class="required">*</span></label>
+                        <input type="password" class="form-control" id="publicSenha" placeholder="Informe a senha para agendar">
+                    </div>
+                `;
+                container.insertAdjacentHTML('afterbegin', pwdHtml);
+            }
+        }
+
+        // FORCE SELECT: Ensuring the dropdown is populated and locked
+        const selectAgenda = document.getElementById('publicAgendaSelect');
+        if (selectAgenda) {
+            console.log("Preenchendo selectAgenda para:", agenda.nome);
+            selectAgenda.innerHTML = `<option value="${agenda.id}" selected>${agenda.nome}</option>`;
+            selectAgenda.value = agenda.id; // redundant but safe
+            selectAgenda.disabled = true;
+        } else {
+            console.warn("Elemento 'publicAgendaSelect' não encontrado!");
+        }
+
+        carregarServicosPublic(agenda);
+        gerarDiasDisponiveis(agenda);
+        const grid = document.getElementById('horariosGrid');
+        if (grid) grid.innerHTML = '';
+        const help = document.getElementById('horarioHelp');
+        if (help) help.textContent = 'Selecione uma data para ver os horários';
+
+    } catch (e) {
+        console.error("Erro em mostrarPaginaAgendamento:", e);
     }
-
-    // MANDATÓRIO: Popular e Travar o Select
-    const selectAgenda = document.getElementById('publicAgendaSelect');
-    if (selectAgenda) {
-        selectAgenda.innerHTML = `<option value="${agenda.id}" selected>${agenda.nome}</option>`;
-        selectAgenda.disabled = true;
-    }
-
-    carregarServicosPublic(agenda);
-    gerarDiasDisponiveis(agenda);
-    document.getElementById('horariosGrid').innerHTML = '';
-    document.getElementById('horarioHelp').textContent = 'Selecione uma data para ver os horários';
 }
 
 // Handler para o onchange do HTML (se necessário)
