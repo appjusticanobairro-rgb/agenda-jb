@@ -39,8 +39,16 @@ async function carregarDados() {
         const response = await fetch(`${API_URL}?action=getData`);
         const data = await response.json();
 
-        agendas = data.agendas || [];
-        agendamentos = data.agendamentos || [];
+        agendas = (data.agendas || []).map(a => ({
+            ...a,
+            dataInicial: limparDataISO(a.dataInicial),
+            ultimaData: limparDataISO(a.ultimaData)
+        }));
+        agendamentos = (data.agendamentos || []).map(a => ({
+            ...a,
+            data: limparDataISO(a.data),
+            horario: limparHoraISO(a.horario)
+        }));
         usuarios = data.usuarios || [];
 
         // Servicos e Endereços: usar defaults se vazios
@@ -647,8 +655,8 @@ function mostrarConfirmacao() {
     // Update confirmation fields
     document.getElementById('confirmCodigo').textContent = agendamentoData.codigo;
     document.getElementById('confirmAgenda').textContent = agendamentoData.agendaNome;
-    document.getElementById('confirmData').textContent = agendamentoData.data.split('-').reverse().join('/');
-    document.getElementById('confirmHorario').textContent = agendamentoData.horario;
+    document.getElementById('confirmData').textContent = limparData(agendamentoData.data);
+    document.getElementById('confirmHorario').textContent = limparHorario(agendamentoData.horario);
     document.getElementById('confirmServico').textContent = agendamentoData.servico;
     document.getElementById('confirmNome').textContent = agendamentoData.nome;
     document.getElementById('confirmCPF').parentElement.style.display = 'none'; // Hide row
@@ -1489,8 +1497,8 @@ async function gerarRelatorioPDF() {
         } else {
             // Create a single table for all appointments in this agenda
             const tableData = appts.map(a => [
-                a.data.split('-').reverse().join('/'),
-                a.horario,
+                limparData(a.data),
+                limparHorario(a.horario),
                 a.nome,
                 a.servico,
                 a.telefone
@@ -1524,6 +1532,43 @@ async function gerarRelatorioPDF() {
 }
 
 
+
+function limparData(val) {
+    if (!val) return "-";
+    let s = String(val);
+    if (s.includes('T')) s = s.split('T')[0];
+    const parts = s.split('-');
+    if (parts.length < 3) return s;
+    return `${parts[2]}/${parts[1]}/${parts[0]}`.substring(0, 10);
+}
+
+function limparHorario(val) {
+    if (!val) return "-";
+    const s = String(val);
+    // Handle ISO 1899-12-30T12:06:28.000Z or pure 12:00:00
+    if (s.includes('T')) {
+        const parts = s.split('T');
+        if (parts.length > 1) return parts[1].substring(0, 5);
+    }
+    return s.substring(0, 5);
+}
+
+function limparDataISO(val) {
+    if (!val) return "";
+    let s = String(val);
+    if (s.includes('T')) return s.split('T')[0];
+    return s;
+}
+
+function limparHoraISO(val) {
+    if (!val) return "";
+    let s = String(val);
+    if (s.includes('T')) {
+        const parts = s.split('T');
+        if (parts.length > 1) return parts[1].substring(0, 5);
+    }
+    return s.substring(0, 5);
+}
 
 function showToast(msg, type = 'success') {
     const t = document.createElement('div');
