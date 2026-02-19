@@ -318,6 +318,7 @@ function mostrarPaginaDesativada(titulo, mensagem) {
 }
 
 function mostrarPaginaAgendamento(agenda) {
+    console.log("Exibindo formulário para agenda:", agenda.nome);
     document.body.classList.add('no-header');
     document.body.classList.remove('login-active');
 
@@ -331,9 +332,8 @@ function mostrarPaginaAgendamento(agenda) {
     document.getElementById('publicAgendaNome').textContent = agenda.nome;
     document.getElementById('confirmAgendaNome').textContent = agenda.nome;
 
-    // Inject Password Field if needed
+    // Password Field logic
     const container = document.getElementById('step1Content').querySelector('.form-section');
-    // Remove old password field if exists to avoid dupes
     const oldPwd = document.getElementById('publicSenhaRow');
     if (oldPwd) oldPwd.remove();
 
@@ -344,14 +344,15 @@ function mostrarPaginaAgendamento(agenda) {
                 <input type="password" class="form-control" id="publicSenha" placeholder="Informe a senha para agendar">
             </div>
         `;
-        // Insert as first element of form section
         container.insertAdjacentHTML('afterbegin', pwdHtml);
     }
 
-    // Populate Agendas Select (Locked to current)
+    // MANDATÓRIO: Popular e Travar o Select
     const selectAgenda = document.getElementById('publicAgendaSelect');
-    selectAgenda.innerHTML = `<option value="${agenda.id}" selected>${agenda.nome}</option>`;
-    selectAgenda.disabled = true; // Lock selection since we are in a specific URL
+    if (selectAgenda) {
+        selectAgenda.innerHTML = `<option value="${agenda.id}" selected>${agenda.nome}</option>`;
+        selectAgenda.disabled = true;
+    }
 
     carregarServicosPublic(agenda);
     gerarDiasDisponiveis(agenda);
@@ -359,7 +360,16 @@ function mostrarPaginaAgendamento(agenda) {
     document.getElementById('horarioHelp').textContent = 'Selecione uma data para ver os horários';
 }
 
-window.addEventListener('hashchange', verificarRota);
+// Handler para o onchange do HTML (se necessário)
+function carregarServicos() {
+    const hash = window.location.hash;
+    if (hash && hash.length > 1) {
+        // Se estiver em rota pública, não faz nada (está travado)
+        return;
+    }
+}
+
+// window.addEventListener('hashchange', verificarRota); // Removido redundante
 
 // --- AGENDAMENTO PÚBLICO ---
 
