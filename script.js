@@ -685,6 +685,7 @@ function renderAgendas(filtered = null) {
                 <div class="card-actions admin-only flex">
                     <button class="icon-btn settings" title="Configurações" onclick="editAgenda(${agenda.id})" style="background: #e3f2fd; color: #2196f3;"><i class="fas fa-cog"></i></button>
                     <button class="icon-btn copy" title="Duplicar/Copiar" onclick="navigator.clipboard.writeText('${link}'); showToast('Link Copiado!')" style="background: #e8f5e9; color: #4caf50;"><i class="fas fa-copy"></i></button>
+                    <button class="icon-btn delete" title="Excluir Agenda" onclick="excluirAgenda(${agenda.id})" style="background: #ffebee; color: #f44336;"><i class="fas fa-trash"></i></button>
                 </div>
             </div>
 
@@ -700,7 +701,7 @@ function renderAgendas(filtered = null) {
                 </div>
 
                 <div style="background: #f5f5f5; padding: 10px; border-radius: 8px; font-size: 13px; color: #0288d1; word-break: break-all; margin-bottom: 15px;">
-                    <strong>Link do Site:</strong><br>
+                    <strong>Link da Agenda:</strong><br>
                     <a href="${link}" target="_blank" style="color: #0288d1; text-decoration: none;">${link}</a>
                 </div>
 
@@ -1182,11 +1183,26 @@ function excluirUsuario(id) {
     if (id === 1) return showToast('O administrador padrão não pode ser excluído', 'error');
     if (id === usuarioLogado.id) return showToast('Você não pode excluir a si mesmo', 'error');
 
-    if (confirm('Deseja excluir este usuário?')) {
-        usuarios = usuarios.filter(u => u.id !== id);
-        salvarDados();
-        renderUsuarios();
-        showToast('Usuário removido com sucesso');
+    if (confirm('Deseja excluir este usuário permanentemente da nuvem?')) {
+        const userToDelete = usuarios.find(u => u.id === id);
+        if (userToDelete) {
+            usuarios = usuarios.filter(u => u.id !== id);
+            salvarDadosCloud('deleteUsuario', { id: userToDelete.id });
+            renderUsuarios();
+            showToast('Usuário removido com sucesso');
+        }
+    }
+}
+
+function excluirAgenda(id) {
+    if (confirm('Deseja excluir esta agenda permanentemente da nuvem? Todos os dados vinculados serão perdidos.')) {
+        const agendaToDelete = agendas.find(a => a.id === id);
+        if (agendaToDelete) {
+            agendas = agendas.filter(a => a.id !== id);
+            salvarDadosCloud('deleteAgenda', { id: agendaToDelete.id });
+            renderAgendas();
+            showToast('Agenda removida com sucesso');
+        }
     }
 }
 
