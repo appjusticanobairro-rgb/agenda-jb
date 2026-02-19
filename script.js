@@ -101,9 +101,11 @@ async function salvarDadosCloud(action, data) {
 }
 
 document.addEventListener('DOMContentLoaded', async function () {
-    // Limpar sessão antiga para forçar login
-    localStorage.removeItem('usuarioLogado');
-    usuarioLogado = null;
+    // Carregar dados da nuvem (apenas uma vez)
+    await carregarDados();
+
+    // Sincronizar sessão do usuário
+    usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado')) || null;
 
     // Mostrar login enquanto carrega
     showLogin();
@@ -119,7 +121,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     loginFields.forEach(id => {
         const field = document.getElementById(id);
         if (field) {
-            field.addEventListener('keypress', function (e) {
+            field.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter') {
                     realizarLogin();
                 }
@@ -234,7 +236,7 @@ function realizarLogin() {
         return;
     }
 
-    const user = userInput.value.trim();
+    const user = userInput.value.trim().toLowerCase();
     const pass = passInput.value.trim();
 
     console.log(`Usuário digitado: ${user}`);
@@ -243,7 +245,10 @@ function realizarLogin() {
         return showToast('Preencha usuário e senha', 'error');
     }
 
-    const found = usuarios.find(u => u.login === user && u.senha === pass);
+    const found = usuarios.find(u =>
+        u.login.toLowerCase().trim() === user &&
+        u.senha === pass
+    );
 
     if (found) {
         console.log("Usuário encontrado! Perfil:", found.perfil);
@@ -281,7 +286,8 @@ function mostrarAdmin() {
     if (loginSection) loginSection.style.display = 'none';
 
     // Safety check for permissions on entry
-    if (usuarioLogado.perfil === 'Usuário') {
+    const perfilNorm = (usuarioLogado.perfil || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    if (perfilNorm === 'usuario') {
         showSection('relatorios');
     }
 
@@ -654,8 +660,17 @@ function renderAgendas(filtered = null) {
 
     container.innerHTML = data.map(agenda => {
         const link = `${baseUrl}#/${agenda.slug}`;
-        const dataInicio = agenda.dataInicial ? agenda.dataInicial.split('-').reverse().join('/') : 'Início';
-        const dataFim = agenda.ultimaData ? agenda.ultimaData.split('-').reverse().join('/') : 'Fim';
+
+        // Helper to handle Google Sheets ISO Dates
+        const formatSheetDate = (d) => {
+            if (!d) return '---';
+            const dateStr = String(d);
+            const datePart = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr;
+            return datePart.split('-').reverse().join('/');
+        };
+
+        const dataInicio = formatSheetDate(agenda.dataInicial);
+        const dataFim = formatSheetDate(agenda.ultimaData);
 
         // Format Horarios
         const diasSemana = { 'seg': 'Seg', 'ter': 'Ter', 'qua': 'Qua', 'qui': 'Qui', 'sex': 'Sex', 'sab': 'Sab', 'dom': 'Dom' };
