@@ -89,13 +89,18 @@ async function salvarDadosCloud(action, data) {
         });
         const result = await response.json();
         console.log("Resposta da nuvem:", result);
+
         if (result.status === 'success') {
-            showToast('Dados salvos na nuvem!', 'success');
+            showToast('Dados sincronizados!', 'success');
+            return true;
+        } else {
+            const erroMsg = result.error || 'Falha no processamento';
+            showToast(`Erro na nuvem: ${erroMsg}`, 'error');
+            return false;
         }
-        return true;
     } catch (error) {
         console.error("Erro ao salvar dados na nuvem:", error);
-        showToast("Erro ao salvar na nuvem. Verifique a conexão.", "error");
+        showToast("Erro de conexão. Verifique sua rede.", "error");
         return false;
     }
 }
@@ -954,7 +959,7 @@ function addSlot(d, inicio = '', fim = '') {
     container.appendChild(div);
 }
 
-function saveAgenda() {
+async function saveAgenda() {
     const nome = document.getElementById('formNome').value;
     const slug = document.getElementById('formSlug').value;
     if (!nome || !slug) return showToast('Preencha nome e slug', 'error');
@@ -992,18 +997,19 @@ function saveAgenda() {
         formularios: 0, agendamentosFuturos: 0, horariosLivres: 0 // Stats placeholders
     };
 
-    if (editingAgendaId) {
-        const idx = agendas.findIndex(a => a.id === editingAgendaId);
-        agendas[idx] = newAgenda;
-    } else {
-        agendas.push(newAgenda);
+    const suceso = await salvarDadosCloud('saveAgenda', newAgenda);
+    if (suceso) {
+        if (editingAgendaId) {
+            const idx = agendas.findIndex(a => a.id === editingAgendaId);
+            agendas[idx] = newAgenda;
+        } else {
+            agendas.push(newAgenda);
+        }
+        renderAgendas();
+        closeModal();
+        editingAgendaId = null;
+        showToast('Salvo com sucesso!');
     }
-
-    salvarDadosCloud('saveAgenda', newAgenda);
-    renderAgendas();
-    closeModal();
-    editingAgendaId = null;
-    showToast('Salvo com sucesso!');
 }
 
 function gerarSlug() {
@@ -1064,19 +1070,27 @@ function getServicosForm() {
     `;
 }
 
-function addServico() {
+async function addServico() {
     const nome = document.getElementById('newServName').value;
     const duracao = parseInt(document.getElementById('newServDur').value);
     if (nome) {
-        servicosDisponiveis.push({ nome, duracao });
-        salvarDadosCloud('saveServicos', servicosDisponiveis);
-        openModal('servicos'); // Refresh
+        const tempList = [...servicosDisponiveis, { nome, duracao }];
+        const suceso = await salvarDadosCloud('saveServicos', tempList);
+        if (suceso) {
+            servicosDisponiveis = tempList;
+            openModal('servicos'); // Refresh
+        }
     }
 }
-function delServico(i) {
-    servicosDisponiveis.splice(i, 1);
-    salvarDadosCloud('saveServicos', servicosDisponiveis);
-    openModal('servicos');
+async function delServico(i) {
+    if (confirm('Deseja excluir este serviço?')) {
+        const tempList = servicosDisponiveis.filter((_, index) => index !== i);
+        const suceso = await salvarDadosCloud('saveServicos', tempList);
+        if (suceso) {
+            servicosDisponiveis = tempList;
+            openModal('servicos');
+        }
+    }
 }
 
 function getEnderecosForm() {
@@ -1106,21 +1120,26 @@ function getEnderecosForm() {
     `;
 }
 
-function addEndereco() {
-    const input = document.getElementById('newEndereco');
-    const valor = input.value.trim();
-    if (valor) {
-        enderecosDisponiveis.push(valor);
-        salvarDadosCloud('saveEnderecos', enderecosDisponiveis);
-        openModal('enderecos');
+async function addEndereco() {
+    const end = document.getElementById('newEndereco').value.trim();
+    if (end) {
+        const tempList = [...enderecosDisponiveis, end];
+        const suceso = await salvarDadosCloud('saveEnderecos', tempList);
+        if (suceso) {
+            enderecosDisponiveis = tempList;
+            openModal('enderecos');
+        }
     }
 }
 
-function delEndereco(index) {
-    if (confirm('Remover este endereço?')) {
-        enderecosDisponiveis.splice(index, 1);
-        salvarDadosCloud('saveEnderecos', enderecosDisponiveis);
-        openModal('enderecos');
+async function delEndereco(index) {
+    if (confirm('Deseja excluir este endereço?')) {
+        const tempList = enderecosDisponiveis.filter((_, i) => i !== index);
+        const suceso = await salvarDadosCloud('saveEnderecos', tempList);
+        if (suceso) {
+            enderecosDisponiveis = tempList;
+            openModal('enderecos');
+        }
     }
 }
 
@@ -1460,7 +1479,7 @@ function getUsuarioForm() {
     `;
 }
 
-function saveUsuario() {
+async function saveUsuario() {
     const nome = document.getElementById('userName').value.trim();
     const login = document.getElementById('userLogin').value.trim();
     const senha = document.getElementById('userPass').value.trim();
@@ -1471,36 +1490,23 @@ function saveUsuario() {
         return showToast('Preencha Nome, Login e Senha', 'error');
     }
 
-    if (editingUsuarioId) {
-        const index = usuarios.findIndex(u => u.id === editingUsuarioId);
-        if (index !== -1) {
-            usuarios[index] = {
-                ...usuarios[index],
-                nome,
-                login,
-                perfil,
-                status
-            };
-            // Só atualizar senha se preenchida no edit
-            if (senha) usuarios[index].senha = senha;
+    const userData = editingUsuarioId
+        ? { ...usuarios.find(u => u.id === editingUsuarioId), nome, login, perfil, status }
+        : { id: Date.now(), nome, login, senha, perfil, status };
 
-            salvarDadosCloud('saveUsuario', usuarios[index]);
-            showToast('Usuário atualizado com sucesso!');
+    if (editingUsuarioId && senha) userData.senha = senha;
+
+    const suceso = await salvarDadosCloud('saveUsuario', userData);
+    if (suceso) {
+        if (editingUsuarioId) {
+            const index = usuarios.findIndex(u => u.id === editingUsuarioId);
+            if (index !== -1) usuarios[index] = userData;
+        } else {
+            usuarios.push(newUser = userData);
         }
-    } else {
-        const newUser = {
-            id: Date.now(),
-            nome,
-            login,
-            senha,
-            perfil,
-            status
-        };
-        usuarios.push(newUser);
-        salvarDadosCloud('saveUsuario', newUser);
-        showToast('Usuário cadastrado com sucesso!');
+        renderUsuarios();
+        closeModal();
+        editingUsuarioId = null;
+        showToast('Usuário salvo com sucesso!');
     }
-
-    renderUsuarios();
-    closeModal();
 }
