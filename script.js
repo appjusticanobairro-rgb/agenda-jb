@@ -547,9 +547,10 @@ function proximoStep() {
     const agenda = agendas.find(a => a.id == agendaId);
 
     // Validate Password
-    if (agenda.senha && agenda.senha.trim() !== "") {
+    const agendaSenha = agenda.senha ? String(agenda.senha).trim() : "";
+    if (agendaSenha && agendaSenha.toLowerCase() !== "null") {
         const inputSenha = document.getElementById('publicSenha');
-        if (!inputSenha || inputSenha.value !== agenda.senha) {
+        if (!inputSenha || String(inputSenha.value).trim() !== agendaSenha) {
             showToast('Senha da agenda incorreta!', 'error');
             return;
         }
