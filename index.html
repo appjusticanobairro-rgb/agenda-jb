@@ -525,17 +525,21 @@
                         </div>
                     </div>
                     <div class="confirmacao-footer">
-                        <button class="btn btn-primary" onclick="novoAgendamento()">
+                        <button class="btn-recibo-blue" onclick="novoAgendamento()">
                             <i class="fas fa-plus"></i>
                             Novo Agendamento
                         </button>
-                        <button class="btn btn-secondary" onclick="imprimirComprovante()">
-                            <i class="fas fa-print"></i>
-                            Imprimir
+                        <button class="btn-recibo-outline" onclick="editarAgendamento()">
+                            <i class="fas fa-edit"></i>
+                            Editar Agendamento
                         </button>
-                        <button class="btn btn-secondary" onclick="voltarAdmin()">
-                            <i class="fas fa-home"></i>
-                            Página Inicial
+                        <button class="btn-recibo-cancel" onclick="cancelarAgendamento()">
+                            <i class="fas fa-times-circle"></i>
+                            Cancelar Agendamento
+                        </button>
+                        <button class="btn-recibo-print" onclick="imprimirRecibo()">
+                            <i class="fas fa-print"></i>
+                            Imprimir Recibo
                         </button>
                     </div>
                 </div>
