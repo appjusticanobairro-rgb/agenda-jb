@@ -667,11 +667,10 @@ function mostrarConfirmacao() {
     document.getElementById('confirmHorario').textContent = limparHorario(agendamentoData.horario);
     document.getElementById('confirmServico').textContent = agendamentoData.servico;
     document.getElementById('confirmNome').textContent = agendamentoData.nome;
-    document.getElementById('confirmCPF').parentElement.style.display = 'none'; // Hide row
-    document.getElementById('confirmEmail').parentElement.style.display = 'none'; // Hide row
     document.getElementById('confirmTelefone').textContent = agendamentoData.telefone;
     document.getElementById('confirmEndereco').textContent = agendamentoData.endereco;
 }
+
 
 function novoAgendamento() {
     if (confirm('Deseja iniciar um novo agendamento?')) {
@@ -1586,7 +1585,7 @@ function showToast(msg, type = 'success') {
     setTimeout(() => t.remove(), 3000);
 }
 function imprimirRecibo() {
-    const body = document.querySelector(".confirmacao-body");
+    const body = document.querySelector(".recibo-body");
     const now = new Date();
     if (body) body.setAttribute("data-date", now.toLocaleDateString() + " " + now.toLocaleTimeString());
     window.print();

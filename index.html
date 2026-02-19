@@ -415,136 +415,142 @@
 
         <!-- Página de Confirmação -->
         <div id="confirmacaoPage" class="public-page">
-            <div class="public-header">
-                <h1 id="confirmAgendaNome">AgenTONIO's</h1>
-                <p id="confirmAgendaSubtitle">Sistema de Agendamento Online</p>
-            </div>
-            <div class="public-container">
-                <div class="confirmacao-card">
-                    <div class="confirmacao-header">
-                        <i class="fas fa-check-circle"></i>
+            <div class="recibo-wrapper">
+                <!-- Botões de Ação no Topo -->
+                <div class="recibo-actions">
+                    <button class="btn-recibo-blue" onclick="novoAgendamento()">
+                        <i class="fas fa-plus"></i> Novo Agendamento
+                    </button>
+                    <button class="btn-recibo-outline" onclick="editarAgendamento()">
+                        <i class="fas fa-edit"></i> Editar Agendamento
+                    </button>
+                    <button class="btn-recibo-cancel" onclick="cancelarAgendamento()">
+                        <i class="fas fa-times-circle"></i> Cancelar Agendamento
+                    </button>
+                    <button class="btn-recibo-print" onclick="imprimirRecibo()">
+                        <i class="fas fa-print"></i> Imprimir Recibo
+                    </button>
+                </div>
+
+                <!-- Card Principal do Recibo -->
+                <div class="recibo-card">
+                    <!-- Banner Verde -->
+                    <div class="recibo-banner">
+                        <div class="recibo-banner-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
                         <h2>Pedido de Agendamento</h2>
-                        <span class="confirmacao-status">Confirmado</span>
+                        <span class="recibo-badge">CONFIRMADO</span>
                     </div>
-                    <div class="confirmacao-body">
-                        <div class="confirmacao-section">
-                            <div class="confirmacao-section-title">
-                                <i class="fas fa-hashtag"></i>
-                                Código do Agendamento
+
+                    <!-- Corpo do Recibo -->
+                    <div class="recibo-body">
+                        <!-- Código -->
+                        <div class="recibo-section">
+                            <div class="recibo-section-title">
+                                <i class="fas fa-hashtag"></i> CÓDIGO DO AGENDAMENTO
                             </div>
-                            <div class="confirmacao-info">
-                                <div class="confirmacao-row">
-                                    <span class="confirmacao-label">Código Identificador:</span>
-                                    <span class="confirmacao-value" id="confirmCodigo">RPW7ELG</span>
+                            <div class="recibo-info-card">
+                                <div class="recibo-row">
+                                    <span class="recibo-label">Código Identificador:</span>
+                                    <span class="recibo-value" id="confirmCodigo">-</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="confirmacao-section">
-                            <div class="confirmacao-section-title">
-                                <i class="fas fa-calendar-alt"></i>
-                                Informações do Agendamento
+                        <!-- Informações do Agendamento -->
+                        <div class="recibo-section">
+                            <div class="recibo-section-title">
+                                <i class="fas fa-calendar-alt"></i> INFORMAÇÕES DO AGENDAMENTO
                             </div>
-                            <div class="confirmacao-info">
-                                <div class="confirmacao-row">
-                                    <span class="confirmacao-label">Agenda:</span>
-                                    <span class="confirmacao-value" id="confirmAgenda">-</span>
+                            <div class="recibo-info-card">
+                                <div class="recibo-row">
+                                    <span class="recibo-label">Agenda:</span>
+                                    <span class="recibo-value" id="confirmAgenda">-</span>
                                 </div>
-                                <div class="confirmacao-row">
-                                    <span class="confirmacao-label">Data:</span>
-                                    <span class="confirmacao-value" id="confirmData">-</span>
+                                <div class="recibo-row">
+                                    <span class="recibo-label">Data:</span>
+                                    <span class="recibo-value" id="confirmData">-</span>
                                 </div>
-                                <div class="confirmacao-row">
-                                    <span class="confirmacao-label">Horário:</span>
-                                    <span class="confirmacao-value" id="confirmHorario">-</span>
+                                <div class="recibo-row">
+                                    <span class="recibo-label">Horário:</span>
+                                    <span class="recibo-value" id="confirmHorario">-</span>
                                 </div>
-                                <div class="confirmacao-row">
-                                    <span class="confirmacao-label">Serviço:</span>
-                                    <span class="confirmacao-value" id="confirmServico">-</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="confirmacao-section">
-                            <div class="confirmacao-section-title">
-                                <i class="fas fa-user"></i>
-                                Dados da Pessoa
-                            </div>
-                            <div class="confirmacao-info">
-                                <div class="confirmacao-row">
-                                    <span class="confirmacao-label">Nome:</span>
-                                    <span class="confirmacao-value" id="confirmNome">-</span>
-                                </div>
-                                <div class="confirmacao-row">
-                                    <span class="confirmacao-label">CPF:</span>
-                                    <span class="confirmacao-value" id="confirmCPF">-</span>
-                                </div>
-                                <div class="confirmacao-row">
-                                    <span class="confirmacao-label">Telefone:</span>
-                                    <span class="confirmacao-value" id="confirmTelefone">-</span>
-                                </div>
-                                <div class="confirmacao-row">
-                                    <span class="confirmacao-label">E-mail:</span>
-                                    <span class="confirmacao-value" id="confirmEmail">-</span>
+                                <div class="recibo-row">
+                                    <span class="recibo-label">Serviço:</span>
+                                    <span class="recibo-value" id="confirmServico">-</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="confirmacao-section">
-                            <div class="confirmacao-section-title">
-                                <i class="fas fa-map-marker-alt"></i>
-                                Local de Atendimento
+                        <!-- Grid de 2 Colunas: Pessoa + Local -->
+                        <div class="recibo-grid-2col">
+                            <div class="recibo-section">
+                                <div class="recibo-section-title">
+                                    <i class="fas fa-user"></i> DADOS DA PESSOA
+                                </div>
+                                <div class="recibo-info-card recibo-info-card-filled">
+                                    <div class="recibo-field">
+                                        <span class="recibo-field-label">Nome:</span>
+                                        <span class="recibo-field-value" id="confirmNome">-</span>
+                                    </div>
+                                    <div class="recibo-field" style="display:none;">
+                                        <span class="recibo-field-label">CPF:</span>
+                                        <span class="recibo-field-value" id="confirmCPF">-</span>
+                                    </div>
+                                    <div class="recibo-field" style="display:none;">
+                                        <span class="recibo-field-label">E-mail:</span>
+                                        <span class="recibo-field-value" id="confirmEmail">-</span>
+                                    </div>
+                                    <div class="recibo-field">
+                                        <span class="recibo-field-label">Telefone:</span>
+                                        <span class="recibo-field-value recibo-field-muted"
+                                            id="confirmTelefone">-</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="confirmacao-info">
-                                <div class="confirmacao-row">
-                                    <span class="confirmacao-label">Endereço:</span>
-                                    <span class="confirmacao-value" id="confirmEndereco">-</span>
+                            <div class="recibo-section">
+                                <div class="recibo-section-title">
+                                    <i class="fas fa-map-marker-alt"></i> LOCAL DE ATENDIMENTO
+                                </div>
+                                <div class="recibo-info-card recibo-info-card-filled">
+                                    <div class="recibo-field">
+                                        <span class="recibo-field-label">Endereço:</span>
+                                        <span class="recibo-field-value" id="confirmEndereco">-</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="confirmacao-section">
-                            <div class="confirmacao-section-title">
-                                <i class="fas fa-info-circle"></i>
-                                INSTRUÇÕES PARA O ATENDIMENTO
+                        <!-- Instruções -->
+                        <div class="recibo-section">
+                            <div class="recibo-section-title">
+                                <i class="fas fa-info-circle"></i> INSTRUÇÕES PARA O ATENDIMENTO
                             </div>
-                            <div class="confirmacao-info">
-                                <ul
-                                    style="list-style: none; padding: 0; font-size: 13px; color: var(--gray-600); line-height: 1.6;">
-                                    <li style="margin-bottom: 5px;">• Mesmo com o agendamento, é nescessário retirar
-                                        senha
-                                        para o atendimento no local do evento</li>
-                                    <li style="margin-bottom: 5px;">• Leve Certidão de Nascimento, casamento ou
-                                        casamento
-                                        com averbação. (<strong>ORIGINAL ou COPIA AUTENTICADA</strong>) em bom estado
+                            <div class="recibo-info-card recibo-instrucoes">
+                                <ul>
+                                    <li>Mesmo com o agendamento, é necessário retirar senha para o atendimento no local
+                                        do evento.</li>
+                                    <li>Leve Certidão de Nascimento, casamento ou casamento com averbação.
+                                        <strong>(ORIGINAL ou CÓPIA AUTENTICADA)</strong> em bom estado.
                                     </li>
-                                    <li style="margin-bottom: 5px;">• Leve os documentos pessoais, documento de
-                                        identificação com foto, CPF, etc.</li>
+                                    <li>Leve os documentos pessoais, documento de identificação com foto, CPF, etc.</li>
                                 </ul>
                             </div>
                         </div>
                     </div>
-                    <div class="confirmacao-footer">
-                        <button class="btn-recibo-blue" onclick="novoAgendamento()">
-                            <i class="fas fa-plus"></i>
-                            Novo Agendamento
-                        </button>
-                        <button class="btn-recibo-outline" onclick="editarAgendamento()">
-                            <i class="fas fa-edit"></i>
-                            Editar Agendamento
-                        </button>
-                        <button class="btn-recibo-cancel" onclick="cancelarAgendamento()">
-                            <i class="fas fa-times-circle"></i>
-                            Cancelar Agendamento
-                        </button>
-                        <button class="btn-recibo-print" onclick="imprimirRecibo()">
-                            <i class="fas fa-print"></i>
-                            Imprimir Recibo
-                        </button>
+
+                    <!-- Rodapé do Recibo -->
+                    <div class="recibo-footer-text">
+                        Em caso de dúvidas, entre em contato com o suporte técnico da unidade.
                     </div>
                 </div>
             </div>
         </div>
+
+
+
+
 
         <!-- Modal -->
         <div class="modal-overlay" id="modalOverlay" onclick="if(event.target === this) closeModal(event)">
