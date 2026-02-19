@@ -338,7 +338,7 @@ function mostrarPaginaAgendamento(agenda) {
             const oldPwd = document.getElementById('publicSenhaRow');
             if (oldPwd) oldPwd.remove();
 
-            if (agenda.senha && agenda.senha.trim() !== "") {
+            if (agenda.senha && String(agenda.senha).trim() !== "") {
                 const pwdHtml = `
                     <div class="form-row-single" id="publicSenhaRow">
                         <label>Senha da Agenda <span class="required">*</span></label>
