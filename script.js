@@ -1,5 +1,4 @@
-// Configuração da API Google (Nuvem)
-const API_URL = 'https://script.google.com/macros/s/AKfycbwB853uupv7I1JIPxLX04tPsnhbPDkSwUxcW85UkFXPM0dZnbpFVca79gyH2E4dVc4VHg/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbyjFk7oomZEc9bIWflNS-wQ6_rjdCCGQE2nCfGy2YbivMWFmzqlbuOkVQ6Ss67FWVMmFQ/exec';
 
 // Data Store
 let agendas = [];
