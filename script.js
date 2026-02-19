@@ -645,9 +645,52 @@ function mostrarConfirmacao() {
 }
 
 function novoAgendamento() {
-    agendamentoData = {};
-    window.location.reload(); // Simplest reset
+    if (confirm('Deseja iniciar um novo agendamento?')) {
+        agendamentoData = {};
+        const url = window.location.href.split('#')[0];
+        const hash = window.location.hash;
+        window.location.href = url + hash; // Mantém o hash da agenda
+        window.location.reload();
+    }
 }
+
+function editarAgendamento() {
+    console.log("Retornando ao formulário para edição...");
+    // 1. Visibilidade de páginas
+    document.getElementById('confirmacaoPage').classList.remove('active');
+    document.getElementById('agendamentoPage').classList.add('active');
+
+    // 2. Reseta Step UI
+    document.getElementById('step2Content').style.display = 'none';
+    document.getElementById('step1Content').style.display = 'block';
+    document.getElementById('step2Indicator').classList.remove('active');
+    document.getElementById('step1Indicator').classList.add('active');
+
+    // 3. Reseta botões
+    document.getElementById('btnVoltar').style.display = 'none';
+    document.getElementById('btnProximo').style.display = 'flex';
+    document.getElementById('btnConfirmar').style.display = 'none';
+
+    showToast('Ajuste os dados e avance novamente.');
+}
+
+async function cancelarAgendamento() {
+    if (confirm('Tem certeza que deseja CANCELAR este agendamento? Ele será excluído permanentemente da nuvem.')) {
+        if (agendamentoData && agendamentoData.codigo) {
+            const sucesso = await salvarDadosCloud('deleteAgendamento', { codigo: agendamentoData.codigo });
+            if (sucesso) {
+                agendamentoData = {};
+                showToast('Agendamento cancelado com sucesso.');
+                setTimeout(() => window.location.reload(), 1500);
+            }
+        } else {
+            // Se ainda não salvou na nuvem, apenas reseta
+            agendamentoData = {};
+            window.location.reload();
+        }
+    }
+}
+
 
 // --- ADMIN ---
 
@@ -1476,7 +1519,13 @@ function showToast(msg, type = 'success') {
     document.getElementById('toastContainer').appendChild(t);
     setTimeout(() => t.remove(), 3000);
 }
-function imprimirComprovante() { const body = document.querySelector(".confirmacao-body"); const now = new Date(); if (body) body.setAttribute("data-date", now.toLocaleDateString() + " " + now.toLocaleTimeString()); window.print(); }
+function imprimirRecibo() {
+    const body = document.querySelector(".confirmacao-body");
+    const now = new Date();
+    if (body) body.setAttribute("data-date", now.toLocaleDateString() + " " + now.toLocaleTimeString());
+    window.print();
+}
+
 
 function getUsuarioForm() {
     return `

@@ -1319,8 +1319,91 @@ body.is-admin .admin-only.flex {
     background: var(--gray-100);
     display: flex;
     justify-content: center;
-    gap: 15px;
+    flex-wrap: wrap;
+    /* Permitir quebra em telas menores */
+    gap: 12px;
     border-top: 1px solid var(--gray-200);
+}
+
+/* Estilos de Botão do Recibo (Premium) */
+.btn-recibo-blue {
+    background-color: #1a73e8;
+    /* Azul Google/Premium */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-recibo-blue:hover {
+    background-color: #1557b0;
+}
+
+.btn-recibo-outline {
+    background-color: white;
+    color: #1a73e8;
+    border: 1px solid #1a73e8;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-recibo-outline:hover {
+    background-color: #f8f9fa;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.btn-recibo-cancel {
+    background-color: #fee2e2;
+    /* Rosa claro/Vermelho suave */
+    color: #991b1b;
+    /* Vermelho escuro */
+    border: 1px solid #fecaca;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-recibo-cancel:hover {
+    background-color: #fecaca;
+}
+
+.btn-recibo-print {
+    background-color: white;
+    color: #444;
+    border: 1px solid #ccc;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-recibo-print:hover {
+    background-color: #f5f5f5;
 }
 
 /* Desativada page */
