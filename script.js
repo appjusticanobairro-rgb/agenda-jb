@@ -160,8 +160,10 @@ function verificarRota() {
                 if (appContainer) appContainer.style.display = '';
 
                 const hoje = new Date().toISOString().split('T')[0];
-                const foraDaVigencia = (agendaFound.dataInicial && hoje < agendaFound.dataInicial) ||
-                    (agendaFound.ultimaData && hoje > agendaFound.ultimaData);
+                const ini = (agendaFound.dataInicial || '').split('T')[0];
+                const fim = (agendaFound.ultimaData || '').split('T')[0];
+
+                const foraDaVigencia = (ini && hoje < ini) || (fim && hoje > fim);
 
                 if (agendaFound.status === 'active' && !foraDaVigencia) {
                     mostrarPaginaAgendamento(agendaFound);
