@@ -1,4 +1,4 @@
-const API_URL = 'https://script.google.com/macros/s/AKfycbwf4k90efHmgO_FECKEIwzKbtGuN08J6I1iy7dqyacQq7xokWz26a_YySZe845QLPTn9A/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbxXDHb7TgYGmi0HTu1NiFKX18EgtLPpJwijth6apV0KL1Yu5zqWR6JlN99yeIyTYHi-kw/exec';
 
 // Data Store
 let agendas = [];
@@ -493,12 +493,15 @@ function gerarHorariosDisponiveis(dataStr) {
     slots.forEach(horario => {
         // Validation: Capacity
         const count = agendamentos.filter(a =>
-            a.agendaId == agendaId &&
+            String(a.agendaId) === String(agendaId) &&
             a.data === dataStr &&
             a.horario === horario
         ).length;
 
-        const isFull = count >= agenda.maxAgendamentosHorario;
+        const max = parseInt(agenda.maxAgendamentosHorario) || 1;
+        const isFull = count >= max;
+
+        console.log(`Slot ${horario}: ${count}/${max} ocupados.`);
 
         // Hide if full instead of disabling
         if (!isFull) {
@@ -603,13 +606,15 @@ function confirmarAgendamento() {
     // Final Capacity Check
     const agenda = agendas.find(a => a.id == agendamentoData.agendaId);
     const count = agendamentos.filter(a =>
-        a.agendaId == agenda.id &&
+        String(a.agendaId) === String(agenda.id) &&
         a.data === agendamentoData.data &&
-        a.horario === agendamentoData.horario
+        a.horario === agendamentoData.horario &&
+        a.codigo !== agendamentoData.codigo // Don't count current if editing
     ).length;
 
-    if (count >= agenda.maxAgendamentosHorario) {
-        showToast('Horário esgotado! Recarregando...', 'error');
+    const max = parseInt(agenda.maxAgendamentosHorario) || 1;
+    if (count >= max) {
+        showToast('Horário esgotado! Selecione outro horário.', 'error');
         voltarStep();
         gerarHorariosDisponiveis(agendamentoData.data);
         return;
@@ -617,11 +622,19 @@ function confirmarAgendamento() {
 
     agendamentoData.nome = nome;
     agendamentoData.telefone = telefone || 'Não informado';
-    agendamentoData.cpf = '-'; // Removed
-    agendamentoData.email = '-'; // Removed
-    agendamentoData.codigo = Math.random().toString(36).substr(2, 7).toUpperCase();
+    agendamentoData.cpf = '-';
+    agendamentoData.email = '-';
 
-    agendamentos.push(agendamentoData);
+    // Se não tem código (novo agendamento), gera um
+    if (!agendamentoData.codigo) {
+        agendamentoData.codigo = Math.random().toString(36).substr(2, 7).toUpperCase();
+        agendamentos.push(agendamentoData);
+    } else {
+        // Se já tem código, atualiza no array local também
+        const idx = agendamentos.findIndex(a => a.codigo === agendamentoData.codigo);
+        if (idx !== -1) agendamentos[idx] = { ...agendamentoData };
+    }
+
     salvarDadosCloud('saveAgendamento', agendamentoData);
     mostrarConfirmacao();
 }
