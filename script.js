@@ -101,19 +101,13 @@ async function salvarDadosCloud(action, data) {
 }
 
 document.addEventListener('DOMContentLoaded', async function () {
-    // Carregar dados da nuvem (apenas uma vez)
+    // 1. Carregar dados da nuvem (essencial para verificar slugs)
     await carregarDados();
 
-    // Sincronizar sessão do usuário
+    // 2. Sincronizar sessão do usuário
     usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado')) || null;
 
-    // Mostrar login enquanto carrega
-    showLogin();
-
-    // Carregar dados da nuvem (apenas uma vez)
-    await carregarDados();
-
-    // Agora rotear com os dados carregados
+    // 3. Verificar Rota ANTES de decidir mostrar o login
     verificarRota();
 
     // Listener para o Enter na tela de login
@@ -1194,29 +1188,34 @@ function editUsuario(id) {
     openModal('addUser');
 }
 
-function excluirUsuario(id) {
+async function excluirUsuario(id) {
     if (id === 1) return showToast('O administrador padrão não pode ser excluído', 'error');
     if (id === usuarioLogado.id) return showToast('Você não pode excluir a si mesmo', 'error');
 
     if (confirm('Deseja excluir este usuário permanentemente da nuvem?')) {
         const userToDelete = usuarios.find(u => u.id === id);
         if (userToDelete) {
-            usuarios = usuarios.filter(u => u.id !== id);
-            salvarDadosCloud('deleteUsuario', { id: userToDelete.id });
-            renderUsuarios();
-            showToast('Usuário removido com sucesso');
+            // Mostrar estado de carregamento se possível ou apenas aguardar
+            const suceso = await salvarDadosCloud('deleteUsuario', { id: userToDelete.id });
+            if (suceso) {
+                usuarios = usuarios.filter(u => u.id !== id);
+                renderUsuarios();
+                showToast('Usuário removido com sucesso');
+            }
         }
     }
 }
 
-function excluirAgenda(id) {
+async function excluirAgenda(id) {
     if (confirm('Deseja excluir esta agenda permanentemente da nuvem? Todos os dados vinculados serão perdidos.')) {
         const agendaToDelete = agendas.find(a => a.id === id);
         if (agendaToDelete) {
-            agendas = agendas.filter(a => a.id !== id);
-            salvarDadosCloud('deleteAgenda', { id: agendaToDelete.id });
-            renderAgendas();
-            showToast('Agenda removida com sucesso');
+            const suceso = await salvarDadosCloud('deleteAgenda', { id: agendaToDelete.id });
+            if (suceso) {
+                agendas = agendas.filter(a => a.id !== id);
+                renderAgendas();
+                showToast('Agenda removida com sucesso');
+            }
         }
     }
 }
