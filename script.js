@@ -611,40 +611,48 @@ function confirmarAgendamento() {
     // Telefone is optional now
     if (!termos) return showToast('Aceite os termos', 'error');
 
-    // Final Capacity Check
-    const agenda = agendas.find(a => a.id == agendamentoData.agendaId);
-    const count = agendamentos.filter(a =>
-        String(a.agendaId) === String(agenda.id) &&
-        a.data === agendamentoData.data &&
-        a.horario === agendamentoData.horario &&
-        a.codigo !== agendamentoData.codigo // Don't count current if editing
-    ).length;
+    // Show loading
+    showLoading();
 
-    const max = parseInt(agenda.maxAgendamentosHorario) || 1;
-    if (count >= max) {
-        showToast('Horário esgotado! Selecione outro horário.', 'error');
-        voltarStep();
-        gerarHorariosDisponiveis(agendamentoData.data);
-        return;
-    }
+    setTimeout(async () => {
+        // Final Capacity Check
+        const agenda = agendas.find(a => a.id == agendamentoData.agendaId);
+        const count = agendamentos.filter(a =>
+            String(a.agendaId) === String(agenda.id) &&
+            a.data === agendamentoData.data &&
+            a.horario === agendamentoData.horario &&
+            a.codigo !== agendamentoData.codigo
+        ).length;
 
-    agendamentoData.nome = nome;
-    agendamentoData.telefone = telefone || 'Não informado';
-    agendamentoData.cpf = '-';
-    agendamentoData.email = '-';
+        const max = parseInt(agenda.maxAgendamentosHorario, 10) || 1;
+        if (count >= max) {
+            hideLoading();
+            showToast('Horário esgotado! Selecione outro horário.', 'error');
+            voltarStep();
+            gerarHorariosDisponiveis(agendamentoData.data);
+            return;
+        }
 
-    // Se não tem código (novo agendamento), gera um
-    if (!agendamentoData.codigo) {
-        agendamentoData.codigo = Math.random().toString(36).substr(2, 7).toUpperCase();
-        agendamentos.push(agendamentoData);
-    } else {
-        // Se já tem código, atualiza no array local também
-        const idx = agendamentos.findIndex(a => a.codigo === agendamentoData.codigo);
-        if (idx !== -1) agendamentos[idx] = { ...agendamentoData };
-    }
+        agendamentoData.nome = nome;
+        agendamentoData.telefone = telefone || 'Não informado';
+        agendamentoData.cpf = '-';
+        agendamentoData.email = '-';
 
-    salvarDadosCloud('saveAgendamento', agendamentoData);
-    mostrarConfirmacao();
+        // Se não tem código (novo agendamento), gera um
+        if (!agendamentoData.codigo) {
+            agendamentoData.codigo = Math.random().toString(36).substr(2, 7).toUpperCase();
+            agendamentos.push(agendamentoData);
+        } else {
+            // Se já tem código, atualiza no array local também
+            const idx = agendamentos.findIndex(a => a.codigo === agendamentoData.codigo);
+            if (idx !== -1) agendamentos[idx] = { ...agendamentoData };
+        }
+
+        await salvarDadosCloud('saveAgendamento', agendamentoData);
+
+        hideLoading();
+        mostrarConfirmacao();
+    }, 500); // Small delay to let spinner appear
 }
 
 function mostrarConfirmacao() {
@@ -1647,5 +1655,19 @@ async function saveUsuario() {
         closeModal();
         editingUsuarioId = null;
         showToast('Usuário salvo com sucesso!');
+    }
+}
+
+function showLoading() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) {
+        overlay.style.display = 'flex';
+    }
+}
+
+function hideLoading() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) {
+        overlay.style.display = 'none';
     }
 }
