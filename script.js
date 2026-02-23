@@ -360,18 +360,16 @@ function mostrarPaginaAgendamento(agenda) {
         document.getElementById('confirmAgendaNome').textContent = agenda.nome;
 
         // 4. Campo de Senha (converte para string e limpa lixo)
-        const container = document.getElementById('step1Content')?.querySelector('.form-section');
-        if (container) {
-            document.getElementById('publicSenhaRow')?.remove();
+        const rowSenha = document.getElementById('publicSenhaRow');
+        const inputSenha = document.getElementById('publicSenha');
+        if (rowSenha && inputSenha) {
             const senhaStr = agenda.senha ? String(agenda.senha).trim() : "";
             if (senhaStr && senhaStr.toLowerCase() !== "null") {
-                const pwdHtml = `
-                    <div class="form-row-single" id="publicSenhaRow">
-                        <label>Senha da Agenda <span class="required">*</span></label>
-                        <input type="password" class="form-control" id="publicSenha" placeholder="Informe a senha para agendar">
-                    </div>
-                `;
-                container.insertAdjacentHTML('afterbegin', pwdHtml);
+                rowSenha.style.display = 'block';
+                inputSenha.value = ''; // Limpa para novo uso
+            } else {
+                rowSenha.style.display = 'none';
+                inputSenha.value = '';
             }
         }
 
