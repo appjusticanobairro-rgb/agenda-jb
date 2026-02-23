@@ -962,9 +962,10 @@ function getAgendaForm() {
         
         <div class="form-group">
             <label>Endereço</label>
-            <select class="form-control" id="formEndereco">
-                ${enderecosDisponiveis.map(e => `<option ${agenda.endereco === e ? 'selected' : ''}>${e}</option>`).join('')}
-            </select>
+            <input class="form-control" id="formEndereco" list="enderecosDataList" value="${agenda.endereco || ''}" placeholder="Pesquise ou digite o endereço...">
+            <datalist id="enderecosDataList">
+                ${enderecosDisponiveis.map(e => `<option value="${e}">`).join('')}
+            </datalist>
         </div>
 
         <div class="horario-section" style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
@@ -1197,40 +1198,139 @@ async function delServico(i) {
 
 function getEnderecosForm() {
     return `
-        <p style="color: #666; font-size: 14px; margin-bottom: 20px;">Gerencie os locais onde os atendimentos são realizados.</p>
+        <p style="color: #666; font-size: 14px; margin-bottom: 20px;">Cadastre os locais de atendimento preenchendo os campos abaixo.</p>
         
-        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-            <input id="newEndereco" class="form-control" placeholder="Novo endereço completo" style="flex: 1;">
-            <button class="btn btn-primary" onclick="addEndereco()" style="background: #00bfa5; border: none;">
-                <i class="fas fa-plus"></i> ADICIONAR
-            </button>
+        <div class="address-entry-form" style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #eee;">
+            <div class="form-row" style="grid-template-columns: 2fr 1fr;">
+                 <div class="form-group">
+                    <label style="font-size: 11px; text-transform: uppercase; color: #777;">País:</label>
+                    <select id="endPais" class="form-control"><option>Brasil</option></select>
+                 </div>
+                 <div class="form-group">
+                    <label style="font-size: 11px; text-transform: uppercase; color: #777;">Estado:</label>
+                    <select id="endEstado" class="form-control">
+                        <option value="PR">Paraná</option>
+                        <option value="AC">Acre</option>
+                        <option value="AL">Alagoas</option>
+                        <option value="AP">Amapá</option>
+                        <option value="AM">Amazonas</option>
+                        <option value="BA">Bahia</option>
+                        <option value="CE">Ceará</option>
+                        <option value="DF">Distrito Federal</option>
+                        <option value="ES">Espírito Santo</option>
+                        <option value="GO">Goiás</option>
+                        <option value="MA">Maranhão</option>
+                        <option value="MT">Mato Grosso</option>
+                        <option value="MS">Mato Grosso do Sul</option>
+                        <option value="MG">Minas Gerais</option>
+                        <option value="PA">Pará</option>
+                        <option value="PB">Paraíba</option>
+                        <option value="PE">Pernambuco</option>
+                        <option value="PI">Piauí</option>
+                        <option value="RJ">Rio de Janeiro</option>
+                        <option value="RN">Rio Grande do Norte</option>
+                        <option value="RS">Rio Grande do Sul</option>
+                        <option value="RO">Rondônia</option>
+                        <option value="RR">Roraima</option>
+                        <option value="SC">Santa Catarina</option>
+                        <option value="SP">São Paulo</option>
+                        <option value="SE">Sergipe</option>
+                        <option value="TO">Tocantins</option>
+                    </select>
+                 </div>
+            </div>
+
+            <div class="form-row" style="grid-template-columns: 2fr 1fr;">
+                 <div class="form-group">
+                    <label style="font-size: 11px; text-transform: uppercase; color: #777;">Município:</label>
+                    <input id="endMunicipio" class="form-control" placeholder="Ex: Rolândia">
+                 </div>
+                 <div class="form-group">
+                    <label style="font-size: 11px; text-transform: uppercase; color: #777;">CEP:</label>
+                    <input id="endCep" class="form-control" placeholder="86600000">
+                 </div>
+            </div>
+
+            <div class="form-row" style="grid-template-columns: 3fr 1fr;">
+                 <div class="form-group">
+                    <label style="font-size: 11px; text-transform: uppercase; color: #777;">Logradouro:</label>
+                    <input id="endLogradouro" class="form-control" placeholder="Ex: Avenida das Palmeiras">
+                 </div>
+                 <div class="form-group">
+                    <label style="font-size: 11px; text-transform: uppercase; color: #777;">Número:</label>
+                    <input id="endNumero" class="form-control" placeholder="300">
+                 </div>
+            </div>
+
+            <div class="form-row">
+                 <div class="form-group">
+                    <label style="font-size: 11px; text-transform: uppercase; color: #777;">Complemento:</label>
+                    <input id="endComplemento" class="form-control" placeholder="Ex: Ginásio de Esportes">
+                 </div>
+                 <div class="form-group">
+                    <label style="font-size: 11px; text-transform: uppercase; color: #777;">Bairro:</label>
+                    <input id="endBairro" class="form-control" placeholder="Vila Oliveira">
+                 </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label style="font-size: 11px; text-transform: uppercase; color: #777;">Distrito:</label>
+                <input id="endDistrito" class="form-control">
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-primary" onclick="addEndereco()" style="flex: 1; justify-content: center;">
+                    <i class="fas fa-save"></i> SALVAR ENDEREÇO
+                </button>
+            </div>
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: 10px; max-height: 300px; overflow-y: auto;">
+        <h3 style="font-size: 16px; margin-bottom: 15px; color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px;">Endereços Cadastrados</h3>
+        <div style="display: flex; flex-direction: column; gap: 10px; max-height: 250px; overflow-y: auto; padding-right: 5px;">
             ${enderecosDisponiveis.map((end, i) => `
-                <div style="background: #f9f9f9; padding: 15px; border-radius: 5px; display: flex; align-items: center; justify-content: space-between; border-left: 4px solid #00bfa5;">
-                    <div style="display: flex; align-items: center; gap: 10px; color: #555;">
+                <div style="background: white; padding: 12px 15px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #eee; border-left: 4px solid #00bfa5;">
+                    <div style="display: flex; align-items: center; gap: 12px; color: #555; font-size: 13px;">
                         <i class="fas fa-map-marker-alt" style="color: #00bfa5;"></i>
                         <span>${end}</span>
                     </div>
-                    <button class="icon-btn" onclick="delEndereco(${i})" style="background: #ffebee; color: #ef5350; width: 30px; height: 30px; border-radius: 4px; display: grid; place-items: center;">
+                    <button class="icon-btn" onclick="delEndereco(${i})" style="background: #ffebee; color: #ef5350; width: 30px; height: 30px; border-radius: 6px; display: grid; place-items: center; flex-shrink: 0;">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
             `).join('')}
+            ${enderecosDisponiveis.length === 0 ? '<p style="text-align: center; color: #999; font-style: italic;">Nenhum endereço cadastrado.</p>' : ''}
         </div>
     `;
 }
 
 async function addEndereco() {
-    const end = document.getElementById('newEndereco').value.trim();
-    if (end) {
-        const tempList = [...enderecosDisponiveis, end];
-        const suceso = await salvarDadosCloud('saveEnderecos', tempList);
-        if (suceso) {
-            enderecosDisponiveis = tempList;
-            openModal('enderecos');
-        }
+    const logradouro = document.getElementById('endLogradouro').value.trim();
+    const numero = document.getElementById('endNumero').value.trim();
+    const bairro = document.getElementById('endBairro').value.trim();
+    const municipio = document.getElementById('endMunicipio').value.trim();
+    const estado = document.getElementById('endEstado').value;
+    const cep = document.getElementById('endCep').value.trim();
+    const complemento = document.getElementById('endComplemento').value.trim();
+
+    if (!logradouro || !municipio) {
+        return showToast('Logradouro e Município são obrigatórios', 'error');
+    }
+
+    // Formatar como string completa: Logradouro, nº Numero - Bairro, Cidade/UF, CEP
+    let endFull = `${logradouro}`;
+    if (numero) endFull += `, nº ${numero}`;
+    if (complemento) endFull += ` (${complemento})`;
+    if (bairro) endFull += ` - ${bairro}`;
+    if (municipio) endFull += `, ${municipio}`;
+    if (estado) endFull += `/${estado}`;
+    if (cep) endFull += ` - CEP: ${cep}`;
+
+    const tempList = [...enderecosDisponiveis, endFull];
+    const suceso = await salvarDadosCloud('saveEnderecos', tempList);
+    if (suceso) {
+        enderecosDisponiveis = tempList;
+        openModal('enderecos');
+        showToast('Endereço cadastrado com sucesso!');
     }
 }
 
