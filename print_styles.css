@@ -95,7 +95,7 @@
     }
 
     .recibo-section-title {
-        font-size: 12px !important;
+        font-size: 14px !important;
         color: #000;
         border-bottom: 1px solid #eee;
         padding: 4px 8px !important;
@@ -120,16 +120,16 @@
 
     .recibo-value {
         color: #000;
-        font-size: 12px !important;
+        font-size: 14px !important;
     }
 
     .recibo-field-label {
-        font-size: 11px !important;
+        font-size: 12px !important;
         color: #666 !important;
     }
 
     .recibo-field-value {
-        font-size: 12px !important;
+        font-size: 14px !important;
         color: #000 !important;
     }
 
@@ -152,13 +152,13 @@
 
     .recibo-instrucoes ul li {
         margin-bottom: 2px !important;
-        font-size: 11px !important;
+        font-size: 12px !important;
         line-height: 1.2 !important;
     }
 
     /* Footer text */
     .recibo-footer-text {
-        font-size: 10px !important;
+        font-size: 11px !important;
         color: #999 !important;
         padding: 8px 0 !important;
     }
@@ -168,7 +168,7 @@
         content: "Comprovante gerado em " attr(data-date);
         display: block;
         text-align: center;
-        font-size: 9px;
+        font-size: 10px;
         color: #999;
         margin-top: 10px;
     }
