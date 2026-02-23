@@ -1552,11 +1552,6 @@ function limparHorario(val) {
     if (!val) return "-";
     const s = String(val);
     if (s.includes('T')) {
-        // Converte string ISO para data local para corrigir timezone (ex: 12:06 UTC -> 09:00 Local)
-        const d = new Date(val);
-        if (!isNaN(d.getTime())) {
-            return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
-        }
         const parts = s.split('T');
         if (parts.length > 1) return parts[1].substring(0, 5);
     }
@@ -1574,10 +1569,6 @@ function limparHoraISO(val) {
     if (!val) return "";
     let s = String(val);
     if (s.includes('T')) {
-        const d = new Date(val);
-        if (!isNaN(d.getTime())) {
-            return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
-        }
         const parts = s.split('T');
         if (parts.length > 1) return parts[1].substring(0, 5);
     }
