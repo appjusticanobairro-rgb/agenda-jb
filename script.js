@@ -356,8 +356,9 @@ function mostrarPaginaAgendamento(agenda) {
         }
 
         // 3. Textos de Título
-        document.getElementById('publicAgendaNome').textContent = agenda.nome;
-        document.getElementById('confirmAgendaNome').textContent = agenda.nome;
+        if (document.getElementById('publicAgendaNome')) document.getElementById('publicAgendaNome').textContent = agenda.nome;
+        // confirmAgendaNome doesn't exist, using confirmAgenda instead if it exists
+        if (document.getElementById('confirmAgenda')) document.getElementById('confirmAgenda').textContent = agenda.nome;
 
         // 4. Campo de Senha (converte para string e limpa lixo)
         const rowSenha = document.getElementById('publicSenhaRow');
@@ -1550,8 +1551,12 @@ function limparData(val) {
 function limparHorario(val) {
     if (!val) return "-";
     const s = String(val);
-    // Handle ISO 1899-12-30T12:06:28.000Z or pure 12:00:00
     if (s.includes('T')) {
+        // Converte string ISO para data local para corrigir timezone (ex: 12:06 UTC -> 09:00 Local)
+        const d = new Date(val);
+        if (!isNaN(d.getTime())) {
+            return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+        }
         const parts = s.split('T');
         if (parts.length > 1) return parts[1].substring(0, 5);
     }
@@ -1569,6 +1574,10 @@ function limparHoraISO(val) {
     if (!val) return "";
     let s = String(val);
     if (s.includes('T')) {
+        const d = new Date(val);
+        if (!isNaN(d.getTime())) {
+            return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+        }
         const parts = s.split('T');
         if (parts.length > 1) return parts[1].substring(0, 5);
     }
