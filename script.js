@@ -1746,6 +1746,25 @@ function limparHoraISO(val) {
     return s.substring(0, 5);
 }
 
+function mascaraTelefone(input) {
+    let value = input.value.replace(/\D/g, "");
+    if (value.length > 11) value = value.substring(0, 11);
+    if (value.length <= 10) {
+        input.value = value.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, "($1) $2-$3").replace(/-$/, "");
+    } else {
+        input.value = value.replace(/^(\d{2})(\d{5})(\d{0,4}).*/, "($1) $2-$3").replace(/-$/, "");
+    }
+}
+
+function mascaraCPF(input) {
+    let v = input.value.replace(/\D/g, "");
+    if (v.length > 11) v = v.substring(0, 11);
+    v = v.replace(/(\d{3})(\d)/, "$1.$2");
+    v = v.replace(/(\d{3})(\d)/, "$1.$2");
+    v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+    input.value = v;
+}
+
 function showToast(msg, type = 'success') {
     const t = document.createElement('div');
     t.className = `toast ${type}`;
