@@ -728,12 +728,22 @@ function editarAgendamento() {
 
 async function cancelarAgendamento() {
     if (confirm('Tem certeza que deseja CANCELAR este agendamento? Ele será excluído permanentemente da nuvem.')) {
+        showLoading();
+
         if (agendamentoData && agendamentoData.codigo) {
             const sucesso = await salvarDadosCloud('deleteAgendamento', { codigo: agendamentoData.codigo });
             if (sucesso) {
                 agendamentoData = {};
                 showToast('Agendamento cancelado com sucesso.');
-                setTimeout(() => window.location.reload(), 1500);
+                // Retornar para tela inicial mantendo o slug
+                setTimeout(() => {
+                    const url = window.location.href.split('#')[0];
+                    const hash = window.location.hash;
+                    window.location.href = url + (hash || '');
+                    window.location.reload();
+                }, 1000);
+            } else {
+                hideLoading();
             }
         } else {
             // Se ainda não salvou na nuvem, apenas reseta
