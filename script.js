@@ -295,9 +295,9 @@ function mostrarAdmin() {
     if (appContainer) appContainer.style.display = '';
     if (loginSection) loginSection.style.display = 'none';
 
-    // Safety check for permissions on entry
-    const perfilNorm = (usuarioLogado.perfil || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    if (perfilNorm === 'usuario') {
+    // Safety check for permissions on entry: Any user not explicitly an Administrator goes to reports
+    const profile = (usuarioLogado.perfil || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    if (profile !== 'administrador') {
         showSection('relatorios');
     }
 
@@ -1353,7 +1353,8 @@ async function delEndereco(index) {
 function aplicarPermissoes() {
     if (!usuarioLogado) return;
 
-    const isAdmin = usuarioLogado?.perfil === 'Administrador';
+    const profile = (usuarioLogado.perfil || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const isAdmin = profile === 'administrador';
 
     // Update Body Class
     if (isAdmin) {
@@ -1363,9 +1364,9 @@ function aplicarPermissoes() {
     }
 
     // Update Header Info
-    document.querySelector('.username').textContent = usuarioLogado.login;
-    document.querySelector('.user-role').textContent = usuarioLogado.perfil.toUpperCase();
-    document.querySelector('.avatar').textContent = usuarioLogado.nome.charAt(0).toUpperCase();
+    document.querySelector('.username').textContent = usuarioLogado.login || 'Usuário';
+    document.querySelector('.user-role').textContent = (usuarioLogado.perfil || 'Usuário').toUpperCase();
+    document.querySelector('.avatar').textContent = (usuarioLogado.nome || 'U').charAt(0).toUpperCase();
 
     // Security: Redirect if User is in forbidden section
     const currentSection = document.querySelector('.nav-item.active span')?.textContent.toLowerCase();
@@ -1453,7 +1454,10 @@ function showSection(section) {
     const usuariosSection = document.getElementById('usuariosSection');
 
     // Security check: Only admins can access 'agendas' and 'usuarios'
-    if (usuarioLogado.perfil !== 'Administrador' && (section === 'agendas' || section === 'usuarios')) {
+    const profile = (usuarioLogado.perfil || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const isAdmin = profile === 'administrador';
+
+    if (!isAdmin && (section === 'agendas' || section === 'usuarios')) {
         section = 'relatorios';
     }
 
