@@ -36,7 +36,7 @@ let agendamentoData = {};
 async function carregarDados() {
     console.log("Solicitando dados da nuvem...");
     try {
-        const response = await fetch(`${API_URL}?action=getData`);
+        const response = await fetch(`${API_URL}?action=getData&t=${Date.now()}`);
         const data = await response.json();
 
         agendas = (data.agendas || []).map(a => ({
@@ -257,10 +257,11 @@ function realizarLogin() {
         return showToast('Preencha usuário e senha', 'error');
     }
 
-    const userFound = usuarios.find(u => u.login.toLowerCase().trim() === user);
+    const userFound = usuarios.find(u => String(u.login || '').toLowerCase().trim() === user);
 
     if (userFound) {
-        if (userFound.senha === pass) {
+        // Garantir comparação como string (evita falha se a senha na planilha for um número)
+        if (String(userFound.senha) === String(pass)) {
             console.log("Usuário encontrado! Perfil:", userFound.perfil);
             if (userFound.status !== 'Ativo') {
                 return showToast('Usuário inativo', 'error');
@@ -283,6 +284,8 @@ function realizarLogout() {
     usuarioLogado = null;
     localStorage.removeItem('usuarioLogado');
     window.location.hash = '';
+    // Recarregar dados ao sair para garantir que novos usuários criados sejam carregados
+    carregarDados();
     verificarRota();
 }
 
