@@ -1,4 +1,4 @@
-const API_URL = 'https://script.google.com/macros/s/AKfycbxevpWNvao8JIFjCh5DMvQ0Z0BvAh9277AtrrLwBkdaFFd9KfOBGV58cNEpgP0ANuuzag/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbzCecQK6mQfT5VITQMiyGU3qJkhWjr-8wdItrLJhyI_eUW9xRxwpdBhDWAlOK3ib26Jrg/exec';
 
 // Data Store
 let agendas = [];
