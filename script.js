@@ -253,23 +253,25 @@ function realizarLogin() {
         return showToast('Preencha usuário e senha', 'error');
     }
 
-    const found = usuarios.find(u =>
-        u.login.toLowerCase().trim() === user &&
-        u.senha === pass
-    );
+    const userFound = usuarios.find(u => u.login.toLowerCase().trim() === user);
 
-    if (found) {
-        console.log("Usuário encontrado! Perfil:", found.perfil);
-        if (found.status !== 'Ativo') {
-            return showToast('Usuário inativo', 'error');
+    if (userFound) {
+        if (userFound.senha === pass) {
+            console.log("Usuário encontrado! Perfil:", userFound.perfil);
+            if (userFound.status !== 'Ativo') {
+                return showToast('Usuário inativo', 'error');
+            }
+            usuarioLogado = userFound;
+            localStorage.setItem('usuarioLogado', JSON.stringify(userFound));
+            showToast(`Bem-vindo, ${userFound.nome}!`);
+            verificarRota();
+        } else {
+            console.log("Senha incorreta.");
+            showToast('Senha incorreta', 'error');
         }
-        usuarioLogado = found;
-        localStorage.setItem('usuarioLogado', JSON.stringify(found));
-        showToast(`Bem-vindo, ${found.nome}!`);
-        verificarRota();
     } else {
-        console.log("Usuário ou senha inválidos.");
-        showToast('Usuário ou senha inválidos', 'error');
+        console.log("Usuário não encontrado.");
+        showToast('Usuário não encontrado', 'error');
     }
 }
 
