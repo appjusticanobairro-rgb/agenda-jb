@@ -173,7 +173,9 @@ function verificarRota() {
                 if (adminPage) adminPage.style.display = 'none';
                 if (appContainer) appContainer.style.display = '';
 
-                const hoje = new Date().toISOString().split('T')[0];
+                const hojeObj = new Date();
+                const hoje = hojeObj.getFullYear() + '-' + String(hojeObj.getMonth() + 1).padStart(2, '0') + '-' + String(hojeObj.getDate()).padStart(2, '0');
+
                 const ini = (agendaFound.dataInicial || '').split('T')[0];
                 const fim = (agendaFound.ultimaData || '').split('T')[0];
 
@@ -432,10 +434,18 @@ function gerarDiasDisponiveis(agenda) {
         const data = new Date(hoje);
         data.setDate(hoje.getDate() + i);
 
-        const dataStr = data.toISOString().split('T')[0];
+        const yyyy = data.getFullYear();
+        const mm = String(data.getMonth() + 1).padStart(2, '0');
+        const dd = String(data.getDate()).padStart(2, '0');
+        const dataStr = `${yyyy}-${mm}-${dd}`;
+
+        // Debug filtering
+        const start = agenda.atendimentoInicial || '';
+        const end = agenda.atendimentoFinal || '';
+
         // Check date limits: Must be within Atendimento range
-        if (agenda.atendimentoInicial && dataStr < agenda.atendimentoInicial) continue;
-        if (agenda.atendimentoFinal && dataStr > agenda.atendimentoFinal) continue;
+        if (start && dataStr < start) continue;
+        if (end && dataStr > end) continue;
 
         const diaSemana = diasSemana[data.getDay()];
         const diaNumero = data.getDate();
@@ -771,9 +781,15 @@ function renderAgendas(filtered = null) {
         // Helper to handle Google Sheets ISO Dates
         const formatSheetDate = (d) => {
             if (!d) return '---';
-            const dateStr = String(d);
-            const datePart = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr;
-            return datePart.split('-').reverse().join('/');
+            const s = String(d).trim();
+            // Se já estiver em DD/MM/YYYY, retorna direto
+            if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)) return s;
+            // Se estiver em YYYY-MM-DD ou ISO
+            const datePart = s.includes('T') ? s.split('T')[0] : s;
+            if (datePart.includes('-')) {
+                return datePart.split('-').reverse().join('/');
+            }
+            return s;
         };
 
         const dataInicio = formatSheetDate(agenda.dataInicial);
@@ -1689,7 +1705,14 @@ function limparHorario(val) {
 
 function limparDataISO(val) {
     if (!val) return "";
-    const s = String(val);
+    const s = String(val).trim();
+
+    // Normalizar DD/MM/YYYY para YYYY-MM-DD
+    if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)) {
+        const parts = s.split('/');
+        return parts[2] + '-' + parts[1].padStart(2, '0') + '-' + parts[0].padStart(2, '0');
+    }
+
     if (s.includes('T')) {
         const d = new Date(val);
         if (!isNaN(d.getTime())) {
