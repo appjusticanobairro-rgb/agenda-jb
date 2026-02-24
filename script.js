@@ -1641,8 +1641,13 @@ async function gerarRelatorioPDF() {
 
 function limparData(val) {
     if (!val) return "-";
-    let s = String(val);
-    if (s.includes('T')) s = s.split('T')[0];
+    const s = String(val);
+    if (s.includes('T')) {
+        const d = new Date(val);
+        if (!isNaN(d.getTime())) {
+            return d.getDate().toString().padStart(2, '0') + '/' + (d.getMonth() + 1).toString().padStart(2, '0') + '/' + d.getFullYear();
+        }
+    }
     const parts = s.split('-');
     if (parts.length < 3) return s;
     return `${parts[2]}/${parts[1]}/${parts[0]}`.substring(0, 10);
@@ -1652,25 +1657,37 @@ function limparHorario(val) {
     if (!val) return "-";
     const s = String(val);
     if (s.includes('T')) {
-        const parts = s.split('T');
-        if (parts.length > 1) return parts[1].substring(0, 5);
+        const d = new Date(val);
+        if (!isNaN(d.getTime())) {
+            // Rounding for potential historical seconds (e.g. 12:06:28)
+            const rounded = new Date(d.getTime() + 30000);
+            return rounded.getHours().toString().padStart(2, '0') + ':' + rounded.getMinutes().toString().padStart(2, '0');
+        }
     }
     return s.substring(0, 5);
 }
 
 function limparDataISO(val) {
     if (!val) return "";
-    let s = String(val);
-    if (s.includes('T')) return s.split('T')[0];
+    const s = String(val);
+    if (s.includes('T')) {
+        const d = new Date(val);
+        if (!isNaN(d.getTime())) {
+            return d.getFullYear() + '-' + (d.getMonth() + 1).toString().padStart(2, '0') + '-' + d.getDate().toString().padStart(2, '0');
+        }
+    }
     return s;
 }
 
 function limparHoraISO(val) {
     if (!val) return "";
-    let s = String(val);
+    const s = String(val);
     if (s.includes('T')) {
-        const parts = s.split('T');
-        if (parts.length > 1) return parts[1].substring(0, 5);
+        const d = new Date(val);
+        if (!isNaN(d.getTime())) {
+            const rounded = new Date(d.getTime() + 30000);
+            return rounded.getHours().toString().padStart(2, '0') + ':' + rounded.getMinutes().toString().padStart(2, '0');
+        }
     }
     return s.substring(0, 5);
 }
