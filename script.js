@@ -42,7 +42,9 @@ async function carregarDados() {
         agendas = (data.agendas || []).map(a => ({
             ...a,
             dataInicial: limparDataISO(a.dataInicial),
-            ultimaData: limparDataISO(a.ultimaData)
+            ultimaData: limparDataISO(a.ultimaData),
+            atendimentoInicial: limparDataISO(a.atendimentoInicial),
+            atendimentoFinal: limparDataISO(a.atendimentoFinal)
         }));
         agendamentos = (data.agendamentos || []).map(a => ({
             ...a,
@@ -431,9 +433,9 @@ function gerarDiasDisponiveis(agenda) {
         data.setDate(hoje.getDate() + i);
 
         const dataStr = data.toISOString().split('T')[0];
-        // Check date limits
-        if (agenda.dataInicial && dataStr < agenda.dataInicial) continue;
-        if (agenda.ultimaData && dataStr > agenda.ultimaData) continue;
+        // Check date limits: Must be within Atendimento range
+        if (agenda.atendimentoInicial && dataStr < agenda.atendimentoInicial) continue;
+        if (agenda.atendimentoFinal && dataStr > agenda.atendimentoFinal) continue;
 
         const diaSemana = diasSemana[data.getDay()];
         const diaNumero = data.getDate();
@@ -825,15 +827,21 @@ function renderAgendas(filtered = null) {
                     <a href="${link}" target="_blank" style="color: #0288d1; text-decoration: none;">${link}</a>
                 </div>
 
-                <!-- New Fields: Vigencia & Senha -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; background: #fff3e0; padding: 10px; border-radius: 8px; border: 1px solid #ffe0b2;">
-                    <div>
-                        <strong style="color: #e65100; font-size: 12px; text-transform: uppercase;">Vigência</strong><br>
-                        <span style="font-size: 14px;">${dataInicio} até ${dataFim}</span>
+                <!-- Vigência, Atendimento & Senha -->
+                <div style="background: #fff3e0; padding: 12px; border-radius: 8px; border: 1px solid #ffe0b2; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <div>
+                            <strong style="color: #e65100; font-size: 11px; text-transform: uppercase;">Vigência</strong><br>
+                            <span style="font-size: 13px;">${dataInicio} até ${dataFim}</span>
+                        </div>
+                        <div style="text-align: right;">
+                            <strong style="color: #e65100; font-size: 11px; text-transform: uppercase;">Senha</strong><br>
+                            <span style="font-size: 13px;">${agenda.senha || '---'}</span>
+                        </div>
                     </div>
-                    <div>
-                        <strong style="color: #e65100; font-size: 12px; text-transform: uppercase;">Senha</strong><br>
-                        <span style="font-size: 14px;">${agenda.senha || 'Não definida'}</span>
+                    <div style="border-top: 1px dashed #ffd180; padding-top: 5px;">
+                        <strong style="color: #e65100; font-size: 11px; text-transform: uppercase;">Atendimento</strong><br>
+                        <span style="font-size: 13px;">${formatSheetDate(agenda.atendimentoInicial)} até ${formatSheetDate(agenda.atendimentoFinal)}</span>
                     </div>
                 </div>
 
@@ -944,8 +952,12 @@ function getAgendaForm() {
             <div class="form-group"><label>Slug</label><input class="form-control" id="formSlug" value="${agenda.slug || ''}"></div>
         </div>
         <div class="form-row">
-            <div class="form-group"><label>Data Início</label><input type="date" class="form-control" id="formDataIni" value="${agenda.dataInicial || ''}"></div>
-            <div class="form-group"><label>Data Fim</label><input type="date" class="form-control" id="formDataFim" value="${agenda.ultimaData || ''}"></div>
+            <div class="form-group"><label>Vigência inicial</label><input type="date" class="form-control" id="formDataIni" value="${agenda.dataInicial || ''}"></div>
+            <div class="form-group"><label>Vigência Final</label><input type="date" class="form-control" id="formDataFim" value="${agenda.ultimaData || ''}"></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label>Data de atendimento inicial</label><input type="date" class="form-control" id="formAtendIni" value="${agenda.atendimentoInicial || ''}"></div>
+            <div class="form-group"><label>Data de atendimento Final</label><input type="date" class="form-control" id="formAtendFim" value="${agenda.atendimentoFinal || ''}"></div>
         </div>
         <div class="form-row">
             <div class="form-group"><label>Senha (Opcional)</label><input type="text" class="form-control" id="formSenha" value="${agenda.senha || ''}"></div>
@@ -1092,6 +1104,8 @@ async function saveAgenda() {
         slug,
         dataInicial: document.getElementById('formDataIni').value,
         ultimaData: document.getElementById('formDataFim').value,
+        atendimentoInicial: document.getElementById('formAtendIni').value,
+        atendimentoFinal: document.getElementById('formAtendFim').value,
         senha: document.getElementById('formSenha').value,
         status: document.getElementById('formStatus').value,
         endereco: document.getElementById('formEndereco').value,
