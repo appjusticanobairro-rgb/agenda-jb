@@ -425,12 +425,20 @@ function gerarDiasDisponiveis(agenda) {
     const diasGrid = document.getElementById('diasGrid');
     const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
     const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0); // Reset time for accurate day calculation
+
+    // Dynamic Range: Search up to atendimentoFinal, or default 30 days
+    let searchWindow = 30;
+    if (agenda.atendimentoFinal) {
+        const finalAtend = new Date(agenda.atendimentoFinal + 'T12:00:00'); // Midday to avoid TZ shifts
+        const diffTime = finalAtend - hoje;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        searchWindow = Math.max(30, Math.min(180, diffDays)); // Min 30, Max 180 days safety cap
+    }
+
     let html = '';
 
-    // Range: Today to +30 days (default) or config
-    // We already validated start/end date for ACCESS, but let's constrain the calendar
-
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < searchWindow; i++) {
         const data = new Date(hoje);
         data.setDate(hoje.getDate() + i);
 
