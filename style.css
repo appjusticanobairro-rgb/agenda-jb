@@ -770,9 +770,7 @@ body.is-admin .admin-only.flex {
     width: 90%;
     max-width: 700px;
     max-height: 90vh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
+    overflow-y: auto;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     animation: modalSlide 0.3s ease;
 }
@@ -824,8 +822,6 @@ body.is-admin .admin-only.flex {
 
 .modal-body {
     padding: 30px;
-    overflow-y: auto;
-    flex: 1;
 }
 
 .form-row {

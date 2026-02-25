@@ -212,7 +212,7 @@
                             <div class="search-box">
                                 <i class="fas fa-search"></i>
                                 <input type="text" id="agendaSearch" placeholder="Pesquisar agendas (ex: Antonina...)"
-                                    onkeyup="debouncedApplyFilters()">
+                                    onkeyup="AdminUI.debouncedApplyFilters()">
                             </div>
                             <button class="btn btn-filter" onclick="toggleFilters()" title="Filtros Avançados">
                                 <i class="fas fa-sliders-h"></i>
@@ -225,7 +225,8 @@
                         <div class="filter-grid">
                             <div class="form-group">
                                 <label>Status</label>
-                                <select class="form-control" id="filterStatus" onchange="debouncedApplyFilters()">
+                                <select class="form-control" id="filterStatus"
+                                    onchange="AdminUI.debouncedApplyFilters()">
                                     <option value="">Todos</option>
                                     <option value="active">Ativa</option>
                                     <option value="inactive">Desativada</option>
@@ -233,7 +234,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Tipo</label>
-                                <select class="form-control" id="filterTipo" onchange="debouncedApplyFilters()">
+                                <select class="form-control" id="filterTipo" onchange="AdminUI.debouncedApplyFilters()">
                                     <option value="">Todos</option>
                                     <option value="presencial">Presencial</option>
                                     <option value="online">Online</option>
@@ -242,12 +243,12 @@
                             <div class="form-group">
                                 <label>Local</label>
                                 <input type="text" class="form-control" id="filterLocal"
-                                    placeholder="Buscar por local..." onkeyup="debouncedApplyFilters()">
+                                    placeholder="Buscar por local..." onkeyup="AdminUI.debouncedApplyFilters()">
                             </div>
                             <div class="form-group">
                                 <label>Serviço</label>
                                 <input type="text" class="form-control" id="filterServico"
-                                    placeholder="Buscar por serviço..." onkeyup="debouncedApplyFilters()">
+                                    placeholder="Buscar por serviço..." onkeyup="AdminUI.debouncedApplyFilters()">
                             </div>
                         </div>
                     </div>
