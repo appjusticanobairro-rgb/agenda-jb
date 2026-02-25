@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Agendamento</title>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="print_styles.css" media="print">
@@ -16,7 +17,7 @@
         <div class="login-card">
             <div class="login-header">
                 <div class="login-logo-container">
-                    <img src="Public/logo-jb.png" alt="Logo Justiça no Bairro">
+                    <img src="Public/logo-jb.png" alt="Logo Justiça no Bairro" loading="lazy">
                 </div>
                 <p class="login-subtitle">Desenvolvido por 2 Antônios</p>
             </div>
@@ -49,7 +50,7 @@
 
         <!-- Background Brand -->
         <div class="login-tjpr-brand">
-            <img src="Public/logotjpr.png" alt="TJPR Logo">
+            <img src="Public/logotjpr.png" alt="TJPR Logo" loading="lazy">
         </div>
     </div>
 
@@ -58,7 +59,7 @@
         <header class="global-header">
             <div class="header-left">
                 <div class="jb-logo">
-                    <img src="logo_jb.png" alt="Justiça no Bairro">
+                    <img src="logo_jb.png" alt="Justiça no Bairro" loading="lazy">
                 </div>
                 <div class="app-info">
                     <span class="app-name">Agenda JB</span>
@@ -211,7 +212,7 @@
                             <div class="search-box">
                                 <i class="fas fa-search"></i>
                                 <input type="text" id="agendaSearch" placeholder="Pesquisar agendas (ex: Antonina...)"
-                                    onkeyup="applyFilters()">
+                                    onkeyup="AdminUI.debouncedApplyFilters()">
                             </div>
                             <button class="btn btn-filter" onclick="toggleFilters()" title="Filtros Avançados">
                                 <i class="fas fa-sliders-h"></i>
@@ -224,7 +225,8 @@
                         <div class="filter-grid">
                             <div class="form-group">
                                 <label>Status</label>
-                                <select class="form-control" id="filterStatus" onchange="applyFilters()">
+                                <select class="form-control" id="filterStatus"
+                                    onchange="AdminUI.debouncedApplyFilters()">
                                     <option value="">Todos</option>
                                     <option value="active">Ativa</option>
                                     <option value="inactive">Desativada</option>
@@ -232,7 +234,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Tipo</label>
-                                <select class="form-control" id="filterTipo" onchange="applyFilters()">
+                                <select class="form-control" id="filterTipo" onchange="AdminUI.debouncedApplyFilters()">
                                     <option value="">Todos</option>
                                     <option value="presencial">Presencial</option>
                                     <option value="online">Online</option>
@@ -241,12 +243,12 @@
                             <div class="form-group">
                                 <label>Local</label>
                                 <input type="text" class="form-control" id="filterLocal"
-                                    placeholder="Buscar por local..." onkeyup="applyFilters()">
+                                    placeholder="Buscar por local..." onkeyup="AdminUI.debouncedApplyFilters()">
                             </div>
                             <div class="form-group">
                                 <label>Serviço</label>
                                 <input type="text" class="form-control" id="filterServico"
-                                    placeholder="Buscar por serviço..." onkeyup="applyFilters()">
+                                    placeholder="Buscar por serviço..." onkeyup="AdminUI.debouncedApplyFilters()">
                             </div>
                         </div>
                     </div>
@@ -579,9 +581,9 @@
         </div>
 
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-        <script
-            src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"
+            defer></script>
         <script src="script.js"></script>
 </body>
 
