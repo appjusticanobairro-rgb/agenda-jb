@@ -33,57 +33,92 @@ let currentStep = 1;
 let agendamentoData = {};
 
 // Carregar dados da Nuvem (Google Sheets)
-async function carregarDados() {
-    console.log("Solicitando dados da nuvem...");
+async function carregarDados(isBackground = false) {
+    if (!isBackground) console.log("Solicitando dados da nuvem...");
     try {
+        const cachedStr = localStorage.getItem('appDataCache');
+        const cacheTime = localStorage.getItem('appDataCacheTime');
+        const now = Date.now();
+        const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+
+        if (!isBackground && cachedStr && cacheTime && (now - parseInt(cacheTime) < CACHE_DURATION)) {
+            console.log("Usando cache local para carregamento rápido.");
+            try {
+                const data = JSON.parse(cachedStr);
+                processarDadosApp(data);
+                carregarDados(true); // Fetch in background to ensure freshness
+                return true;
+            } catch (e) {
+                console.error("Erro ao ler cache", e);
+            }
+        }
+
+        if (!isBackground) console.log("Sem cache válido. Buscando na nuvem...");
         const response = await fetch(`${API_URL}?action=getData&t=${Date.now()}`);
         const data = await response.json();
 
-        agendas = (data.agendas || []).map(a => ({
-            ...a,
-            dataInicial: limparDataISO(a.dataInicial),
-            ultimaData: limparDataISO(a.ultimaData),
-            atendimentoInicial: limparDataISO(a.atendimentoInicial),
-            atendimentoFinal: limparDataISO(a.atendimentoFinal)
-        }));
-        agendamentos = (data.agendamentos || []).map(a => ({
-            ...a,
-            data: limparDataISO(a.data),
-            horario: limparHoraISO(a.horario)
-        }));
-        usuarios = data.usuarios || [];
+        // Save to cache
+        localStorage.setItem('appDataCache', JSON.stringify(data));
+        localStorage.setItem('appDataCacheTime', Date.now().toString());
 
-        // Servicos e Endereços: usar defaults se vazios
-        servicosDisponiveis = (data.servicos && data.servicos.length > 0) ? data.servicos : defaultServices;
-        enderecosDisponiveis = (data.enderecos && data.enderecos.length > 0) ? data.enderecos : ["Av. Pres. Kennedy, n.º 900, Bairro Centro, Telêmaco Borba"];
-
-        console.log("Dados carregados da nuvem.");
-        console.log(`Agendas: ${agendas.length}, Usuarios: ${usuarios.length}, Servicos: ${servicosDisponiveis.length}`);
+        processarDadosApp(data);
 
         // Auto-seed: Se a planilha está vazia, popular com dados iniciais
-        if (usuarios.length === 0) {
-            console.log("Nenhum usuário na nuvem. Criando admin padrão...");
-            for (const u of USUARIOS_DEFAULT) {
-                await salvarDadosCloud('saveUsuario', u);
+        if (!isBackground) {
+            if (usuarios.length === 0) {
+                console.log("Nenhum usuário na nuvem. Criando admin padrão...");
+                for (const u of USUARIOS_DEFAULT) {
+                    await salvarDadosCloud('saveUsuario', u);
+                }
+                usuarios = [...USUARIOS_DEFAULT];
             }
-            usuarios = [...USUARIOS_DEFAULT];
-        }
-        if (!data.servicos || data.servicos.length === 0) {
-            console.log("Sem serviços na nuvem. Enviando defaults...");
-            await salvarDadosCloud('saveServicos', defaultServices);
-        }
-        if (!data.enderecos || data.enderecos.length === 0) {
-            console.log("Sem endereços na nuvem. Enviando default...");
-            await salvarDadosCloud('saveEnderecos', enderecosDisponiveis);
+            if (!data.servicos || data.servicos.length === 0) {
+                console.log("Sem serviços na nuvem. Enviando defaults...");
+                await salvarDadosCloud('saveServicos', defaultServices);
+            }
+            if (!data.enderecos || data.enderecos.length === 0) {
+                console.log("Sem endereços na nuvem. Enviando default...");
+                await salvarDadosCloud('saveEnderecos', enderecosDisponiveis);
+            }
+        } else {
+            // Se estiver em background e no Admin, renderizar para mostrar possíveis novos dados silenciosamente
+            const adminPage = document.getElementById('adminPage');
+            if (adminPage && adminPage.style.display !== 'none' && typeof renderAgendas === 'function') {
+                renderAgendas();
+            }
         }
 
         // Sessão do usuário local
         usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado')) || null;
+        return true;
 
     } catch (error) {
         console.error("Erro ao carregar dados da nuvem:", error);
-        showToast("Erro ao conectar com o banco de dados. Verifique sua conexão.", "error");
+        if (!isBackground) showToast("Erro ao conectar com o banco de dados. Verifique sua conexão.", "error");
+        return false;
     }
+}
+
+function processarDadosApp(data) {
+    agendas = (data.agendas || []).map(a => ({
+        ...a,
+        dataInicial: limparDataISO(a.dataInicial),
+        ultimaData: limparDataISO(a.ultimaData),
+        atendimentoInicial: limparDataISO(a.atendimentoInicial),
+        atendimentoFinal: limparDataISO(a.atendimentoFinal)
+    }));
+    agendamentos = (data.agendamentos || []).map(a => ({
+        ...a,
+        data: limparDataISO(a.data),
+        horario: limparHoraISO(a.horario)
+    }));
+    usuarios = data.usuarios || [];
+
+    // Servicos e Endereços: usar defaults se vazios
+    servicosDisponiveis = (data.servicos && data.servicos.length > 0) ? data.servicos : defaultServices;
+    enderecosDisponiveis = (data.enderecos && data.enderecos.length > 0) ? data.enderecos : ["Av. Pres. Kennedy, n.º 900, Bairro Centro, Telêmaco Borba"];
+
+    console.log("Dados processados com sucesso.");
 }
 
 // Salvar dados na Nuvem (Google Sheets via Apps Script)
@@ -100,6 +135,9 @@ async function salvarDadosCloud(action, data) {
         console.log("Resposta da nuvem:", result);
 
         if (result.status === 'success') {
+            // Invalidar o cache após uma alteração bem-sucedida para forçar o download na próxima recarga
+            localStorage.removeItem('appDataCache');
+            localStorage.removeItem('appDataCacheTime');
             showToast('Dados sincronizados!', 'success');
             return true;
         } else {
@@ -764,6 +802,26 @@ function voltarAdmin() {
 function toggleFilters() {
     const filters = document.getElementById('filtersSection');
     filters.classList.toggle('active');
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+let _bounceFilters = null;
+function debouncedApplyFilters() {
+    if (!_bounceFilters) {
+        _bounceFilters = debounce(() => applyFilters(), 300);
+    }
+    _bounceFilters();
 }
 
 function applyFilters() {
