@@ -1752,10 +1752,6 @@ function renderDashboard() {
                     legend: {
                         position: 'bottom',
                         labels: {
-                            color: function (context) {   // Customize text labels based on color
-                                const index = context.index;
-                                return index === 0 ? '#00c2a8' : '#4285f4';
-                            },
                             usePointStyle: true, // Bolinhas / Quadrados mais elegantes
                             pointStyle: 'rect',
                             boxWidth: 15,
@@ -1767,11 +1763,12 @@ function renderDashboard() {
                                 weight: 'bold'
                             },
                         },
+                        onClick: null, // Evitar ocultar os dados clicando
                         generateLabels: (chart) => {
                             const original = Chart.defaults.plugins.legend.labels.generateLabels(chart);
-                            original.forEach(label => {
+                            original.forEach((label, index) => {
                                 // Força a cor do texto igual a do background
-                                label.fontColor = label.fillStyle;
+                                label.fontColor = index === 0 ? '#00c2a8' : '#4285f4';
                             });
                             return original;
                         }
