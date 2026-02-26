@@ -1542,14 +1542,41 @@ async function excluirUsuario(id) {
 }
 
 async function excluirAgenda(id) {
-    if (confirm('Deseja excluir esta agenda permanentemente da nuvem? Todos os dados vinculados serão perdidos.')) {
+    if (confirm('Deseja excluir esta agenda permanentemente da nuvem? TODOS OS AGENDAMENTOS vinculados também serão apagados!')) {
         const agendaToDelete = agendas.find(a => a.id === id);
         if (agendaToDelete) {
+            const loading = document.getElementById('loadingOverlay');
+            if (loading) {
+                loading.querySelector('p').textContent = 'Excluindo agenda e agendamentos... isso pode levar alguns segundos.';
+                loading.style.display = 'flex';
+            }
+
+            // Encontrar todos os agendamentos desta agenda
+            const agendamentosVinculados = agendamentos.filter(ag => ag.agendaId == id);
+
+            // Excluir cada agendamento sequencialmente para evitar falhas de concorrência na nuvem
+            for (let ag of agendamentosVinculados) {
+                await salvarDadosCloud('deleteAgendamento', { codigo: ag.codigo });
+            }
+
+            // Excluir a agenda
             const suceso = await salvarDadosCloud('deleteAgenda', { id: agendaToDelete.id });
+
+            if (loading) {
+                loading.style.display = 'none';
+                loading.querySelector('p').textContent = 'Sincronizando dados...'; // reset default text
+            }
+
             if (suceso) {
                 agendas = agendas.filter(a => a.id !== id);
+                agendamentos = agendamentos.filter(ag => ag.agendaId != id); // Clear locally
+
+                // Evita que o cache carregue dados mortos na próxima piscada
+                localStorage.removeItem('appDataCache');
+                localStorage.removeItem('appDataCacheTime');
+
                 renderAgendas();
-                showToast('Agenda removida com sucesso');
+                showToast('Agenda e ' + agendamentosVinculados.length + ' agendamentos removidos com sucesso');
             }
         }
     }
@@ -1697,8 +1724,23 @@ function toggleAllReports(source) {
 }
 
 async function gerarRelatorioPDF() {
-    // Garantir que temos os dados mais recentes antes de gerar
-    carregarDados();
+    // Show Loading Overlay
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) {
+        loadingOverlay.querySelector('p').textContent = 'Sincronizando dados...';
+        loadingOverlay.style.display = 'flex';
+    }
+
+    // Invalidate local cache explicitly to force cloud fetch
+    localStorage.removeItem('appDataCache');
+    localStorage.removeItem('appDataCacheTime');
+
+    // Await strictly the fresh load
+    await carregarDados();
+
+    if (loadingOverlay) {
+        loadingOverlay.style.display = 'none';
+    }
 
     // Get filter values
     const dataIni = document.getElementById('reportDataIni').value;
