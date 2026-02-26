@@ -1561,12 +1561,13 @@ function showSection(section) {
     const agendasSection = document.getElementById('agendasSection');
     const relatoriosSection = document.getElementById('relatoriosSection');
     const usuariosSection = document.getElementById('usuariosSection');
+    const dashboardSection = document.getElementById('dashboardSection');
 
-    // Security check: Only admins can access 'agendas' and 'usuarios'
+    // Security check: Only admins can access 'agendas', 'usuarios' and 'dashboard'
     const profile = (usuarioLogado.perfil || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     const isAdmin = profile === 'administrador';
 
-    if (!isAdmin && (section === 'agendas' || section === 'usuarios')) {
+    if (!isAdmin && (section === 'agendas' || section === 'usuarios' || section === 'dashboard')) {
         section = 'relatorios';
     }
 
@@ -1579,41 +1580,92 @@ function showSection(section) {
         }
     });
 
-    if (section === 'relatorios') {
-        // Hide Main View Elements
-        if (mainHeader) mainHeader.style.display = 'none';
-        if (mainTitle) mainTitle.style.display = 'none';
-        if (agendasSection) agendasSection.style.display = 'none';
-        if (usuariosSection) usuariosSection.style.display = 'none';
+    // Hide all content containers
+    if (mainHeader) mainHeader.style.display = 'none';
+    if (mainTitle) mainTitle.style.display = 'none';
+    if (agendasSection) agendasSection.style.display = 'none';
+    if (relatoriosSection) relatoriosSection.style.display = 'none';
+    if (usuariosSection) usuariosSection.style.display = 'none';
+    if (dashboardSection) dashboardSection.style.display = 'none';
 
-        // Show Reports
+    if (section === 'relatorios') {
         if (relatoriosSection) {
             relatoriosSection.style.display = 'block';
             renderRelatoriosView();
         }
     } else if (section === 'usuarios') {
-        // Hide Main View Elements
-        if (mainHeader) mainHeader.style.display = 'none';
-        if (mainTitle) mainTitle.style.display = 'none';
-        if (agendasSection) agendasSection.style.display = 'none';
-        if (relatoriosSection) relatoriosSection.style.display = 'none';
-
-        // Show Users
         if (usuariosSection) {
             usuariosSection.style.display = 'block';
             renderUsuarios();
         }
+    } else if (section === 'dashboard') {
+        if (dashboardSection) {
+            dashboardSection.style.display = 'block';
+            renderDashboard();
+        }
     } else {
-        // Show Main View Elements
+        // 'agendas'
         if (mainHeader) mainHeader.style.display = 'block';
         if (mainTitle) mainTitle.style.display = 'flex';
         if (agendasSection) agendasSection.style.display = 'block';
-
-        // Hide Others
-        if (relatoriosSection) relatoriosSection.style.display = 'none';
-        if (usuariosSection) usuariosSection.style.display = 'none';
         renderAgendas();
     }
+}
+
+let dashboardChart = null;
+function renderDashboard() {
+    const ctx = document.getElementById('dashboardChart');
+    if (!ctx) return;
+
+    // Filter active agendas
+    const activeAgendas = agendas.filter(a => a.status === 'active');
+
+    const labels = [];
+    const data = [];
+
+    activeAgendas.forEach(agenda => {
+        labels.push(agenda.nome);
+        // Count agendamentos for this agenda
+        const count = agendamentos.filter(ag => ag.agendaId === agenda.id).length;
+        data.push(count);
+    });
+
+    if (dashboardChart) {
+        dashboardChart.destroy();
+    }
+
+    dashboardChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Agendamentos Reservados',
+                data: data,
+                backgroundColor: 'rgba(0, 191, 165, 0.6)', /* Var Primary Color */
+                borderColor: 'rgba(0, 191, 165, 1)',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            }
+        }
+    });
 }
 
 function renderRelatoriosView() {
