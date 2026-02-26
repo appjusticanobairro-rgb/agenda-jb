@@ -1738,7 +1738,7 @@ function renderDashboard() {
                 labels: ['Número de Horários Livres', 'Agendamentos Reservados'],
                 datasets: [{
                     data: [livres, reservados],
-                    backgroundColor: ['#fd7e14', '#4285f4'], // Laranja e Azul parecidos com o print
+                    backgroundColor: ['#00c2a8', '#4285f4'], // Laranja e Azul parecidos com o print
                     borderWidth: 2,
                     borderColor: '#ffffff',
                     hoverOffset: 4
@@ -1754,7 +1754,7 @@ function renderDashboard() {
                         labels: {
                             color: function (context) {   // Customize text labels based on color
                                 const index = context.index;
-                                return index === 0 ? '#fd7e14' : '#4285f4';
+                                return index === 0 ? '#00c2a8' : '#4285f4';
                             },
                             usePointStyle: true, // Bolinhas / Quadrados mais elegantes
                             pointStyle: 'rect',
