@@ -1686,59 +1686,108 @@ function showSection(section) {
     }
 }
 
-let dashboardChart = null;
+let dashboardCharts = [];
 function renderDashboard() {
-    const ctx = document.getElementById('dashboardChart');
-    if (!ctx) return;
+    const container = document.getElementById('dashboardContent');
+    if (!container) return;
 
     // Filter active agendas
     const activeAgendas = agendas.filter(a => a.status === 'active');
 
-    const labels = [];
-    const data = [];
-
-    activeAgendas.forEach(agenda => {
-        labels.push(agenda.nome);
-        // Count agendamentos for this agenda
-        const count = agendamentos.filter(ag => ag.agendaId === agenda.id).length;
-        data.push(count);
+    // Limpar gráficos antigos
+    dashboardCharts.forEach(chart => {
+        if (chart) chart.destroy();
     });
+    dashboardCharts = [];
+    container.innerHTML = ''; // Limpa o container
 
-    if (dashboardChart) {
-        dashboardChart.destroy();
+    if (activeAgendas.length === 0) {
+        container.innerHTML = '<div class="empty-state"><h3>Nenhuma agenda ativa</h3></div>';
+        return;
     }
 
-    dashboardChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Agendamentos Reservados',
-                data: data,
-                backgroundColor: 'rgba(0, 191, 165, 0.6)', /* Var Primary Color */
-                borderColor: 'rgba(0, 191, 165, 1)',
-                borderWidth: 1,
-                borderRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
+    activeAgendas.forEach(agenda => {
+        // Calcular valores baseados nos campos solicitados
+        const reservados = agendamentos.filter(ag => ag.agendaId == agenda.id).length;
+        const livres = calcularHorariosLivres(agenda, reservados);
+
+        // Criar card para o gráfico
+        const card = document.createElement('div');
+        card.className = 'form-group dashboard-card';
+        card.style.cssText = 'background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;';
+
+        const title = document.createElement('h3');
+        title.textContent = agenda.nome;
+        title.style.cssText = 'font-size: 14px; margin-bottom: 25px; color: #333; text-transform: uppercase; font-family: sans-serif; letter-spacing: 0.5px;';
+        card.appendChild(title);
+
+        const canvasContainer = document.createElement('div');
+        canvasContainer.style.cssText = 'height: 250px; position: relative; width: 100%; display: flex; justify-content: center;';
+
+        const canvas = document.createElement('canvas');
+        canvas.id = `chart_${agenda.id}`;
+        canvasContainer.appendChild(canvas);
+
+        card.appendChild(canvasContainer);
+        container.appendChild(card);
+
+        // Estilizar a legenda de acordo com a foto
+        const chart = new Chart(canvas, {
+            type: 'doughnut',
+            data: {
+                labels: ['Número de Horários Livres', 'Agendamentos Reservados'],
+                datasets: [{
+                    data: [livres, reservados],
+                    backgroundColor: ['#fd7e14', '#4285f4'], // Laranja e Azul parecidos com o print
+                    borderWidth: 2,
+                    borderColor: '#ffffff',
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%', // Faz o anel ser perfeitamente como na foto
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: function (context) {   // Customize text labels based on color
+                                const index = context.index;
+                                return index === 0 ? '#fd7e14' : '#4285f4';
+                            },
+                            usePointStyle: true, // Bolinhas / Quadrados mais elegantes
+                            pointStyle: 'rect',
+                            boxWidth: 15,
+                            boxHeight: 15,
+                            padding: 20,
+                            font: {
+                                size: 13,
+                                family: 'sans-serif',
+                                weight: 'bold'
+                            },
+                        },
+                        generateLabels: (chart) => {
+                            const original = Chart.defaults.plugins.legend.labels.generateLabels(chart);
+                            original.forEach(label => {
+                                // Força a cor do texto igual a do background
+                                label.fontColor = label.fillStyle;
+                            });
+                            return original;
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                return ` ${context.label}: ${context.raw}`; // Espaço antes para parecer com a foto
+                            }
+                        }
                     }
                 }
-            },
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'top'
-                }
             }
-        }
+        });
+
+        dashboardCharts.push(chart);
     });
 }
 
