@@ -151,13 +151,9 @@
                         <h1>Dashboard</h1>
                         <p>Visão geral dos agendamentos por agenda ativa</p>
                     </div>
-                    <div class="content-section">
-                        <div class="form-group"
-                            style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
-                            <div style="height: 400px; position: relative;">
-                                <canvas id="dashboardChart"></canvas>
-                            </div>
-                        </div>
+                    <div class="content-section" id="dashboardContent"
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px;">
+                        <!-- Gráficos serão inseridos aqui dinamicamente -->
                     </div>
                 </div>
 
