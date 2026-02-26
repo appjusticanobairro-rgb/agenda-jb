@@ -844,6 +844,53 @@ function applyFilters() {
     renderAgendas(filtered);
 }
 
+function calcularHorariosLivres(agenda, agendamentosAgendaLength) {
+    if (!agenda.atendimentoInicial || !agenda.atendimentoFinal) return 'N/A';
+
+    const ini = new Date(agenda.atendimentoInicial + 'T12:00:00');
+    const fim = new Date(agenda.atendimentoFinal + 'T12:00:00');
+
+    if (isNaN(ini) || isNaN(fim)) return 'N/A';
+
+    let minDuracao = 30; // default
+    if (agenda.servicos && agenda.servicos.length > 0) {
+        const servicosAgenda = servicosDisponiveis.filter(s => agenda.servicos.includes(s.nome));
+        if (servicosAgenda.length > 0) {
+            minDuracao = Math.min(...servicosAgenda.map(s => parseInt(s.duracao) || 30));
+        }
+    }
+
+    const mapDias = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab'];
+    let curr = new Date(ini);
+    let totalSlots = 0;
+
+    while (curr <= fim) {
+        const diaKey = mapDias[curr.getDay()];
+        const configDia = agenda.horarioAtendimento && agenda.horarioAtendimento[diaKey];
+
+        if (configDia && configDia.ativo) {
+            let configSlots = configDia.slots || [];
+            if (!configDia.slots) {
+                if (configDia.inicio1 && configDia.fim1) configSlots.push({ inicio: configDia.inicio1, fim: configDia.fim1 });
+                if (configDia.inicio2 && configDia.fim2) configSlots.push({ inicio: configDia.inicio2, fim: configDia.fim2 });
+            }
+
+            configSlots.forEach(s => {
+                totalSlots += gerarSlotsPorDuracao(s.inicio, s.fim, minDuracao).length;
+            });
+        }
+        curr.setDate(curr.getDate() + 1);
+    }
+
+    // In other places, maxAgendamentosHorario falls back to 6 visually but might be 1 internally or undefined.
+    // If it's saved as 0 or undefined, default is usually 6 based on HTML line 975.
+    const maxPorHorario = parseInt(agenda.maxAgendamentosHorario) || (agenda.maxAgendamentosHorario === 0 ? 0 : 6);
+    const capacidadeTotal = totalSlots * maxPorHorario;
+
+    const livres = capacidadeTotal - agendamentosAgendaLength;
+    return livres < 0 ? 0 : livres;
+}
+
 function renderAgendas(filtered = null) {
     const container = document.getElementById('agendasContainer');
     const data = filtered || agendas;
@@ -968,7 +1015,7 @@ function renderAgendas(filtered = null) {
                     <div style="font-size: 13px; color: #666; margin-bottom: 5px;">
                         <strong>Formulários:</strong><br>
                         Número de Agendamentos Futuros: ${agendamentos.filter(a => a.agendaId == agenda.id).length}<br>
-                        Número de Horários Livres: (Dinâmico)<br>
+                        Número de Horários Livres: ${calcularHorariosLivres(agenda, agendamentos.filter(a => a.agendaId == agenda.id).length)}<br>
                     </div>
                     <div style="font-size: 13px; color: #666;">
                         <strong>Quantidade Máxima de Agendamentos por Horário:</strong><br>
