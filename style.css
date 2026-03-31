@@ -1886,6 +1886,10 @@ body.login-active {
     background: #f0f2f5;
 }
 
+body.no-header .public-layout {
+    min-height: 100vh;
+}
+
 .public-sidebar {
     width: 280px;
     background: #ffffff;
@@ -1946,7 +1950,7 @@ body.login-active {
 
 .public-main {
     flex: 1;
-    padding: 40px;
+    padding: 0;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -1954,14 +1958,21 @@ body.login-active {
 }
 
 .public-header {
-    width: calc(100% + 80px);
-    margin: -40px -40px 30px -40px;
-    background: #00befa; /* Color from photo 2 blue button */
-    color: #333; /* Dark text like photo 3 */
-    padding: 40px 20px;
+    width: 100%;
+    margin: 0 0 40px 0;
+    background: #00befa;
+    color: #333;
+    padding: 60px 20px;
     text-align: center;
     max-width: none;
 }
+
+#novoAgendamentoSection, #pesquisaAgendamentoSection {
+    width: 100%;
+    max-width: 900px;
+    padding: 0 20px 60px 20px;
+}
+
 
 .public-header h1 {
     font-size: 32px;
