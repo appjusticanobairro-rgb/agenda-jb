@@ -320,129 +320,183 @@
 
         <!-- Página Pública - Novo Agendamento -->
         <div id="agendamentoPage" class="public-page">
-            <div class="public-header">
-                <h1 id="publicAgendaNome">AgenTONIO's</h1>
-                <p id="publicAgendaSubtitle">Sistema de Agendamento Online</p>
-            </div>
-            <div class="public-container">
-                <div class="agendamento-card">
-                    <div class="agendamento-header">
-                        <h2>Novo Agendamento</h2>
-                        <div class="step-indicator">
-                            <div class="step active" id="step1Indicator">
-                                <div class="step-number">1</div>
-                                <div class="step-label">Dados do Agendamento</div>
-                            </div>
-                            <div class="step" id="step2Indicator">
-                                <div class="step-number">2</div>
-                                <div class="step-label">Informações Adicionais</div>
-                            </div>
-                        </div>
+            <div class="public-layout">
+                <aside class="public-sidebar">
+                    <div class="sidebar-logo">
+                        <img src="logo_jb.png" alt="Logo JB">
                     </div>
-                    <div class="agendamento-body" id="agendamentoBody">
-                        <!-- Step 1 - Dados do Agendamento -->
-                        <div id="step1Content">
-                            <div class="form-section">
-                                <div class="form-row-single" id="publicSenhaRow" style="display: none;">
-                                    <label>Senha da Agenda <span class="required">*</span></label>
-                                    <input type="password" class="form-control" id="publicSenha"
-                                        placeholder="Informe a senha para agendar">
-                                </div>
+                    <nav class="public-nav">
+                        <div class="public-nav-item active" id="navNovo" onclick="switchPublicSection('novo')">
+                            <i class="fas fa-plus-circle"></i>
+                            <span>Novo Agendamento</span>
+                        </div>
+                        <div class="public-nav-item" id="navPesquisa" onclick="switchPublicSection('pesquisa')">
+                            <i class="fas fa-search"></i>
+                            <span>Pesquisar</span>
+                        </div>
+                    </nav>
+                </aside>
 
-                                <div class="form-section-title">Dados do Agendamento</div>
+                <main class="public-main">
+                    <div class="public-header">
+                        <h1 id="publicAgendaNome">AgenTONIO's</h1>
+                        <p id="publicAgendaSubtitle">Sistema de Agendamento Online</p>
+                    </div>
 
-                                <div class="form-row-single">
-                                    <label>Agenda <span class="required">*</span></label>
-                                    <select class="form-control" id="publicAgendaSelect" onchange="carregarServicos()">
-                                        <option value="">Selecione uma agenda</option>
-                                    </select>
-                                </div>
-
-                                <div class="form-row-single">
-                                    <label>Serviços Agendamento <span class="required">*</span></label>
-                                    <select class="form-control" id="publicServicoSelect">
-                                        <option value="">Selecione um serviço</option>
-                                    </select>
-                                    <p class="help-text" style="color: var(--danger);">Este campo é obrigatório</p>
-                                </div>
-
-                                <div class="form-row-single">
-                                    <label>Data para o Agendamento <span class="required">*</span></label>
-                                    <div class="dias-grid" id="diasGrid">
-                                        <!-- Dias serão gerados dinamicamente -->
+                    <div id="novoAgendamentoSection">
+                        <div class="agendamento-card">
+                            <div class="agendamento-header">
+                                <h2>Novo Agendamento</h2>
+                                <div class="step-indicator">
+                                    <div class="step active" id="step1Indicator">
+                                        <div class="step-number">1</div>
+                                        <div class="step-label">Dados do Agendamento</div>
                                     </div>
-                                    <p class="help-text" id="dataHelp">Selecione um dia</p>
-                                </div>
-
-                                <div class="form-row-single">
-                                    <label>Horário <span class="required">*</span></label>
-                                    <div class="horarios-grid" id="horariosGrid">
-                                        <!-- Horários serão gerados dinamicamente -->
+                                    <div class="step" id="step2Indicator">
+                                        <div class="step-number">2</div>
+                                        <div class="step-label">Informações Adicionais</div>
                                     </div>
-                                    <p class="help-text" id="horarioHelp">Selecione uma data para ver os horários</p>
+                                </div>
+                            </div>
+                            <div class="agendamento-body" id="agendamentoBody">
+                                <!-- Step 1 - Dados do Agendamento -->
+                                <div id="step1Content">
+                                    <div class="form-section">
+                                        <div class="form-row-single" id="publicSenhaRow" style="display: none;">
+                                            <label>Senha da Agenda <span class="required">*</span></label>
+                                            <input type="password" class="form-control" id="publicSenha"
+                                                placeholder="Informe a senha para agendar">
+                                        </div>
+
+                                        <div class="form-section-title">Dados do Agendamento</div>
+
+                                        <div class="form-row-single">
+                                            <label>Agenda <span class="required">*</span></label>
+                                            <select class="form-control" id="publicAgendaSelect"
+                                                onchange="carregarServicos()">
+                                                <option value="">Selecione uma agenda</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="form-row-single">
+                                            <label>Serviços Agendamento <span class="required">*</span></label>
+                                            <select class="form-control" id="publicServicoSelect">
+                                                <option value="">Selecione um serviço</option>
+                                            </select>
+                                            <p class="help-text" style="color: var(--danger);">Este campo é obrigatório
+                                            </p>
+                                        </div>
+
+                                        <div class="form-row-single">
+                                            <label>Data para o Agendamento <span class="required">*</span></label>
+                                            <div class="dias-grid" id="diasGrid">
+                                                <!-- Dias serão gerados dinamicamente -->
+                                            </div>
+                                            <p class="help-text" id="dataHelp">Selecione um dia</p>
+                                        </div>
+
+                                        <div class="form-row-single">
+                                            <label>Horário <span class="required">*</span></label>
+                                            <div class="horarios-grid" id="horariosGrid">
+                                                <!-- Horários serão gerados dinamicamente -->
+                                            </div>
+                                            <p class="help-text" id="horarioHelp">Selecione uma data para ver os horários
+                                            </p>
+                                        </div>
+
+                                    </div>
                                 </div>
 
+                                <!-- Step 2 - Informações Adicionais -->
+                                <div id="step2Content" style="display: none;">
+                                    <div class="form-section">
+                                        <div class="form-section-title">Informações Adicionais</div>
+
+                                        <div class="form-row-single">
+                                            <label>Nome Completo <span class="required">*</span></label>
+                                            <input type="text" class="form-control" id="publicNome"
+                                                placeholder="Digite seu nome completo">
+                                            <p class="help-text">Verifique a digitação do nome. Ele não pode ser
+                                                editado.</p>
+                                        </div>
+
+                                        <div class="form-row-single">
+                                            <label>CPF <span class="required">*</span></label>
+                                            <input type="text" class="form-control" id="publicCPF"
+                                                placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this)">
+                                        </div>
+
+                                        <div class="form-row-single">
+                                            <label>Telefone (Opcional)</label>
+                                            <input type="text" class="form-control" id="publicTelefone"
+                                                placeholder="(00) 00000-0000" maxlength="15"
+                                                oninput="mascaraTelefone(this)">
+                                        </div>
+
+                                        <div class="form-row-single">
+                                            <label>E-mail <span class="required">*</span></label>
+                                            <input type="email" class="form-control" id="publicEmail"
+                                                placeholder="seu@email.com">
+                                        </div>
+
+                                        <div class="checkbox-termos">
+                                            <input type="checkbox" id="termosAceite">
+                                            <label for="termosAceite">Declaro estar ciente e de acordo que meus dados
+                                                pessoais são
+                                                coletados com finalidade de permitir o agendamento de atendimento e
+                                                serão
+                                                armazenados, utilizados e descartados de acordo com os <a
+                                                    href="#">Termos de
+                                                    Uso</a>
+                                                e <a href="#">Política de Privacidade</a>.</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="agendamento-footer">
+                                <button class="btn btn-voltar" id="btnVoltar" onclick="voltarStep()"
+                                    style="display: none;">
+                                    <i class="fas fa-arrow-left"></i>
+                                    Voltar
+                                </button>
+                                <button class="btn btn-primary" id="btnProximo" onclick="proximoStep()">
+                                    Próximo
+                                    <i class="fas fa-arrow-right"></i>
+                                </button>
+                                <button class="btn btn-confirmar" id="btnConfirmar" onclick="confirmarAgendamento()"
+                                    style="display: none;">
+                                    <i class="fas fa-check"></i>
+                                    Confirmar
+                                </button>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Step 2 - Informações Adicionais -->
-                        <div id="step2Content" style="display: none;">
-                            <div class="form-section">
-                                <div class="form-section-title">Informações Adicionais</div>
-
-                                <div class="form-row-single">
-                                    <label>Nome Completo <span class="required">*</span></label>
-                                    <input type="text" class="form-control" id="publicNome"
-                                        placeholder="Digite seu nome completo">
-                                    <p class="help-text">Verifique a digitação do nome. Ele não pode ser editado.</p>
+                    <!-- Seção de Consulta -->
+                    <div id="pesquisaAgendamentoSection" style="display: none;">
+                        <div class="agendamento-card">
+                            <div class="agendamento-header">
+                                <h2>Consultar Agendamento</h2>
+                                <p>Consulte seu agendamento por nome, telefone ou código.</p>
+                            </div>
+                            <div class="agendamento-body">
+                                <div class="search-container-public">
+                                    <div class="search-box-public">
+                                        <i class="fas fa-search"></i>
+                                        <input type="text" id="publicSearchInput"
+                                            placeholder="Nome, Telefone ou Código..." onkeyup="pesquisarAgendamento()">
+                                    </div>
                                 </div>
-
-                                <div class="form-row-single">
-                                    <label>CPF <span class="required">*</span></label>
-                                    <input type="text" class="form-control" id="publicCPF" placeholder="000.000.000-00"
-                                        maxlength="14" oninput="mascaraCPF(this)">
-                                </div>
-
-                                <div class="form-row-single">
-                                    <label>Telefone (Opcional)</label>
-                                    <input type="text" class="form-control" id="publicTelefone"
-                                        placeholder="(00) 00000-0000" maxlength="15" oninput="mascaraTelefone(this)">
-                                </div>
-
-                                <div class="form-row-single">
-                                    <label>E-mail <span class="required">*</span></label>
-                                    <input type="email" class="form-control" id="publicEmail"
-                                        placeholder="seu@email.com">
-                                </div>
-
-                                <div class="checkbox-termos">
-                                    <input type="checkbox" id="termosAceite">
-                                    <label for="termosAceite">Declaro estar ciente e de acordo que meus dados pessoais
-                                        são
-                                        coletados com finalidade de permitir o agendamento de atendimento e serão
-                                        armazenados, utilizados e descartados de acordo com os <a href="#">Termos de
-                                            Uso</a>
-                                        e <a href="#">Política de Privacidade</a>.</label>
+                                <div id="publicSearchResults" class="results-container-public">
+                                    <div class="empty-results">
+                                        <i class="fas fa-calendar-search"></i>
+                                        <p>Digite algo para pesquisar seu agendamento.</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="agendamento-footer">
-                        <button class="btn btn-voltar" id="btnVoltar" onclick="voltarStep()" style="display: none;">
-                            <i class="fas fa-arrow-left"></i>
-                            Voltar
-                        </button>
-                        <button class="btn btn-primary" id="btnProximo" onclick="proximoStep()">
-                            Próximo
-                            <i class="fas fa-arrow-right"></i>
-                        </button>
-                        <button class="btn btn-confirmar" id="btnConfirmar" onclick="confirmarAgendamento()"
-                            style="display: none;">
-                            <i class="fas fa-check"></i>
-                            Confirmar
-                        </button>
-                    </div>
-                </div>
+                </main>
             </div>
         </div>
 

@@ -792,6 +792,91 @@ async function cancelarAgendamento() {
 }
 
 
+// --- NAVEGAÇÃO PÚBLICA & PESQUISA ---
+
+function switchPublicSection(section) {
+    const navNovo = document.getElementById('navNovo');
+    const navPesquisa = document.getElementById('navPesquisa');
+    const secNovo = document.getElementById('novoAgendamentoSection');
+    const secPesquisa = document.getElementById('pesquisaAgendamentoSection');
+
+    if (section === 'novo') {
+        if (navNovo) navNovo.classList.add('active');
+        if (navPesquisa) navPesquisa.classList.remove('active');
+        if (secNovo) secNovo.style.display = 'block';
+        if (secPesquisa) secPesquisa.style.display = 'none';
+    } else if (section === 'pesquisa') {
+        if (navNovo) navNovo.classList.remove('active');
+        if (navPesquisa) navPesquisa.classList.add('active');
+        if (secNovo) secNovo.style.display = 'none';
+        if (secPesquisa) secPesquisa.style.display = 'block';
+    }
+}
+
+function pesquisarAgendamento() {
+    const input = document.getElementById('publicSearchInput');
+    if (!input) return;
+    const query = input.value.toLowerCase().trim();
+    const resultsContainer = document.getElementById('publicSearchResults');
+
+    if (!query) {
+        resultsContainer.innerHTML = `
+            <div class="empty-results">
+                <i class="fas fa-calendar-search"></i>
+                <p>Digite algo para pesquisar seu agendamento.</p>
+            </div>`;
+        return;
+    }
+
+    // Filtrar agendamentos por nome, telefone ou código
+    const filtered = agendamentos.filter(a => 
+        (a.nome || '').toLowerCase().includes(query) ||
+        (a.telefone || '').includes(query) ||
+        (a.codigo || '').toLowerCase().includes(query)
+    );
+
+    if (filtered.length === 0) {
+        resultsContainer.innerHTML = `
+            <div class="empty-results">
+                <i class="fas fa-search-minus"></i>
+                <p>Nenhum agendamento encontrado.</p>
+            </div>`;
+        return;
+    }
+
+    resultsContainer.innerHTML = filtered.map(a => `
+        <div class="search-result-card">
+            <div class="result-info">
+                <div class="result-name">${a.nome}</div>
+                <div class="result-meta">
+                    <span><i class="fas fa-calendar-alt"></i> ${limparData(a.data)}</span>
+                    <span><i class="fas fa-clock"></i> ${a.horario}</span>
+                    <span><i class="fas fa-hashtag"></i> ${a.codigo}</span>
+                </div>
+            </div>
+            <button class="btn-view-result" onclick="exibirAgendamentoConsultado('${a.codigo}')">
+                <i class="fas fa-eye"></i> Visualizar Recibo
+            </button>
+        </div>
+    `).join('');
+}
+
+function exibirAgendamentoConsultado(codigo) {
+    const found = agendamentos.find(a => a.codigo === codigo);
+    if (found) {
+        agendamentoData = { ...found };
+        
+        // Garantir que a tela de confirmação mostre os dados
+        mostrarConfirmacao();
+        
+        // Scroll para o topo
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+        showToast('Agendamento não encontrado', 'error');
+    }
+}
+
+
 // --- ADMIN ---
 
 function voltarAdmin() {

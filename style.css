@@ -1879,6 +1879,263 @@ body.login-active {
     letter-spacing: 0.5px;
 }
 
+/* Public Page Sidebar Layout */
+.public-layout {
+    display: flex;
+    min-height: calc(100vh - 65px);
+    background: #f0f2f5;
+}
+
+.public-sidebar {
+    width: 280px;
+    background: #ffffff;
+    border-right: 1px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    flex-shrink: 0;
+}
+
+.sidebar-logo {
+    padding: 20px 0;
+    text-align: center;
+    border-bottom: 1px solid #f0f0f0;
+    margin-bottom: 20px;
+}
+
+.sidebar-logo img {
+    max-height: 60px;
+    width: auto;
+}
+
+.public-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.public-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #555;
+    font-weight: 500;
+}
+
+.public-nav-item i {
+    font-size: 18px;
+    color: #888;
+}
+
+.public-nav-item:hover {
+    background: #f5f5f5;
+}
+
+.public-nav-item.active {
+    background: var(--primary);
+    color: white;
+}
+
+.public-nav-item.active i {
+    color: white;
+}
+
+.public-main {
+    flex: 1;
+    padding: 40px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.public-header {
+    width: 100%;
+    max-width: 800px;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.public-header h1 {
+    font-size: 32px;
+    color: var(--gray-800);
+}
+
+.public-header p {
+    color: #666;
+}
+
+/* Search UI */
+.search-container-public {
+    margin-bottom: 25px;
+}
+
+.search-box-public {
+    position: relative;
+    width: 100%;
+}
+
+.search-box-public i {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+}
+
+.search-box-public input {
+    width: 100%;
+    padding: 15px 15px 15px 55px;
+    border: 2px solid #e0e0e0;
+    border-radius: 15px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.search-box-public input:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(0, 191, 165, 0.1);
+}
+
+.results-container-public {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+    max-width: 800px;
+}
+
+.empty-results {
+    text-align: center;
+    padding: 40px;
+    color: #999;
+}
+
+.empty-results i {
+    font-size: 48px;
+    margin-bottom: 15px;
+    opacity: 0.3;
+}
+
+.search-result-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 15px;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.search-result-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.result-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.result-name {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--gray-800);
+}
+
+.result-meta {
+    font-size: 13px;
+    color: #666;
+    display: flex;
+    gap: 15px;
+}
+
+.result-meta i {
+    margin-right: 5px;
+    color: var(--primary);
+}
+
+.result-badge {
+    background: #e0f2f1;
+    color: var(--primary-dark);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.btn-view-result {
+    background: #f0f0f0;
+    color: #555;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+}
+
+.btn-view-result:hover {
+    background: var(--primary);
+    color: white;
+}
+
+/* Responsive Public Sidebar */
+@media (max-width: 992px) {
+    .public-layout {
+        flex-direction: column;
+    }
+
+    .public-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #e0e0e0;
+        padding: 10px 20px;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .sidebar-logo {
+        padding: 0;
+        margin-bottom: 0;
+        border-bottom: none;
+    }
+
+    .sidebar-logo img {
+        max-height: 40px;
+    }
+
+    .public-nav {
+        flex-direction: row;
+        gap: 5px;
+    }
+
+    .public-nav-item {
+        padding: 10px 15px;
+        border-radius: 10px;
+        font-size: 13px;
+    }
+
+    .public-nav-item span {
+        display: none;
+    }
+
+    .public-main {
+        padding: 20px;
+    }
+}
+
 @keyframes spin {
     to {
         transform: rotate(360deg);
