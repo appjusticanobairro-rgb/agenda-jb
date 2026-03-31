@@ -739,6 +739,10 @@ function mostrarConfirmacao() {
     document.getElementById('confirmNome').textContent = agendamentoData.nome;
     document.getElementById('confirmTelefone').textContent = agendamentoData.telefone;
     document.getElementById('confirmEndereco').textContent = agendamentoData.endereco;
+
+    // Reset visibility of action buttons (default: all visible for new appointments)
+    if (document.getElementById('btnReciboEditar')) document.getElementById('btnReciboEditar').style.display = 'flex';
+    if (document.getElementById('btnReciboCancelar')) document.getElementById('btnReciboCancelar').style.display = 'flex';
 }
 
 
@@ -887,6 +891,10 @@ function exibirAgendamentoConsultado(codigo) {
         
         // Garantir que a tela de confirmação mostre os dados
         mostrarConfirmacao();
+        
+        // OCULTAR botões de edição/cancelamento quando vem da consulta por pesquisa
+        if (document.getElementById('btnReciboEditar')) document.getElementById('btnReciboEditar').style.display = 'none';
+        if (document.getElementById('btnReciboCancelar')) document.getElementById('btnReciboCancelar').style.display = 'none';
         
         // Scroll para o topo
         window.scrollTo({ top: 0, behavior: 'smooth' });
