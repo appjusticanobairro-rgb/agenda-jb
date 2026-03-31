@@ -31,6 +31,7 @@ let editingAgendaId = null;
 let editingUsuarioId = null; // State for user editing
 let currentStep = 1;
 let agendamentoData = {};
+let currentPublicAgenda = null; // Agenda ativa no momento (público)
 
 // Carregar dados da Nuvem (Google Sheets)
 async function carregarDados(isBackground = false) {
@@ -372,6 +373,13 @@ function mostrarPaginaDesativada(titulo, mensagem) {
 }
 
 function mostrarPaginaAgendamento(agenda) {
+    currentPublicAgenda = agenda; // Armazena a agenda ativa para uso na pesquisa
+    
+    // Inicializa agendamentoData com os dados da agenda atual
+    agendamentoData.agendaId = agenda.id;
+    agendamentoData.agendaNome = agenda.nome;
+    agendamentoData.endereco = agenda.endereco;
+    
     console.log("--- mostrarPaginaAgendamento ---", agenda.nome);
     try {
         // 1. Visibilidade básica
@@ -828,11 +836,13 @@ function pesquisarAgendamento() {
         return;
     }
 
-    // Filtrar agendamentos por nome, telefone ou código
+    // Filtrar agendamentos por nome, telefone ou código E PELA AGENDA ATUAL
     const filtered = agendamentos.filter(a => 
-        (a.nome || '').toLowerCase().includes(query) ||
-        (a.telefone || '').includes(query) ||
-        (a.codigo || '').toLowerCase().includes(query)
+        String(a.agendaId) === String(currentPublicAgenda ? currentPublicAgenda.id : '') && (
+            (a.nome || '').toLowerCase().includes(query) ||
+            (a.telefone || '').includes(query) ||
+            (a.codigo || '').toLowerCase().includes(query)
+        )
     );
 
     if (filtered.length === 0) {
@@ -865,6 +875,15 @@ function exibirAgendamentoConsultado(codigo) {
     const found = agendamentos.find(a => a.codigo === codigo);
     if (found) {
         agendamentoData = { ...found };
+        
+        // CORREÇÃO: Repopular nome da agenda e endereço caso venham vazios da nuvem
+        if (!agendamentoData.agendaNome || !agendamentoData.endereco) {
+            const agenda = agendas.find(g => String(g.id) === String(found.agendaId));
+            if (agenda) {
+                agendamentoData.agendaNome = agenda.nome;
+                agendamentoData.endereco = agenda.endereco;
+            }
+        }
         
         // Garantir que a tela de confirmação mostre os dados
         mostrarConfirmacao();
