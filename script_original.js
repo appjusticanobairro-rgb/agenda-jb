@@ -809,63 +809,24 @@ async function cancelarAgendamento() {
             if (sucesso) {
                 agendamentoData = {};
                 showToast('Agendamento cancelado com sucesso.');
-                resetFormularioAgendamento();
+                
+                // Volta pra tela de agendamento
+                document.getElementById('confirmacaoPage').classList.remove('active');
+                document.getElementById('agendamentoPage').classList.add('active');
+                switchPublicSection('novo');
             } else {
                 showToast('Erro ao cancelar. Tente novamente.', 'error');
             }
         } else {
             // Se ainda não salvou na nuvem, apenas reseta
+            agendamentoData = {};
             hideLoading();
-            resetFormularioAgendamento();
+            document.getElementById('confirmacaoPage').classList.remove('active');
+            document.getElementById('agendamentoPage').classList.add('active');
+            switchPublicSection('novo');
         }
     }
 }
-function resetFormularioAgendamento() {
-    agendamentoData = {};
-    currentStep = 1;
-
-    // Reset UI stages
-    document.querySelectorAll('.app-page').forEach(p => p.classList.remove('active'));
-    
-    // Se a agenda atual possui senha, volta para a tela de login; caso contr�rio, vai para o agendamento direto
-    if (typeof currentPublicAgenda !== 'undefined' && currentPublicAgenda && currentPublicAgenda.senha) {
-        showLogin();
-    } else {
-        document.getElementById('agendamentoPage').classList.add('active');
-    }
-    
-    switchPublicSection('novo');
-
-    // Reset indicator
-    document.getElementById('step1Content').style.display = 'block';
-    document.getElementById('step2Content').style.display = 'none';
-    document.getElementById('step1Indicator').classList.add('active');
-    document.getElementById('step2Indicator').classList.remove('active');
-    document.getElementById('btnVoltar').style.display = 'none';
-    document.getElementById('btnProximo').style.display = 'flex';
-    document.getElementById('btnConfirmar').style.display = 'none';
-
-    // Clear inputs
-    const nome = document.getElementById('publicNome');
-    const telefone = document.getElementById('publicTelefone');
-    const cpf = document.getElementById('publicCPF');
-    const email = document.getElementById('publicEmail');
-    const termos = document.getElementById('termosAceite');
-    if (nome) nome.value = '';
-    if (telefone) telefone.value = '';
-    if (cpf) cpf.value = '';
-    if (email) email.value = '';
-    if (termos) termos.checked = false;
-
-    // Clear and reset scheduling UI
-    document.querySelectorAll('.dia-btn.selected').forEach(b => b.classList.remove('selected'));
-    document.querySelectorAll('.horario-btn.selected').forEach(b => b.classList.remove('selected'));
-    const horariosGrid = document.getElementById('horariosGrid');
-    if (horariosGrid) horariosGrid.innerHTML = '';
-    const horarioHelp = document.getElementById('horarioHelp');
-    if (horarioHelp) horarioHelp.textContent = 'Selecione uma data para ver os hor�rios';
-}
-
 
 
 // --- NAVEGAÇÃO PÚBLICA & PESQUISA ---
@@ -995,7 +956,7 @@ function debounce(func, wait) {
 let _bounceFilters = null;
 function debouncedApplyFilters() {
     if (!_bounceFilters) {
-        _bounceFilters = debounce(() => applyFilters(), 200);
+        _bounceFilters = debounce(() => applyFilters(), 300);
     }
     _bounceFilters();
 }
@@ -2201,7 +2162,7 @@ function showToast(msg, type = 'success') {
     t.className = `toast ${type}`;
     t.innerHTML = `<span>${msg}</span>`;
     document.getElementById('toastContainer').appendChild(t);
-    setTimeout(() => t.remove(), 2000);
+    setTimeout(() => t.remove(), 3000);
 }
 function imprimirRecibo() {
     const body = document.querySelector(".recibo-body");
