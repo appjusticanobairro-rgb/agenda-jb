@@ -320,22 +320,21 @@
 
         <!-- Página Pública - Novo Agendamento -->
         <div id="agendamentoPage" class="public-page">
-            <div class="public-layout">
-                <aside class="public-sidebar">
-                    <div class="sidebar-logo">
-                        <img src="logo_jb.png" alt="Logo JB">
+            <div class="public-top-bar">
+                <div class="top-bar-logo">
+                    <img src="logo_jb.png" alt="Logo JB">
+                </div>
+                <div class="top-nav">
+                    <div class="btn-top-nav active-teal" id="navNovo" onclick="switchPublicSection('novo')" title="Novo Agendamento">
+                        <i class="fas fa-plus"></i>
                     </div>
-                    <nav class="public-nav">
-                        <div class="public-nav-item active" id="navNovo" onclick="switchPublicSection('novo')">
-                            <i class="fas fa-plus-circle"></i>
-                            <span>Novo Agendamento</span>
-                        </div>
-                        <div class="public-nav-item" id="navPesquisa" onclick="switchPublicSection('pesquisa')">
-                            <i class="fas fa-search"></i>
-                            <span>Pesquisar</span>
-                        </div>
-                    </nav>
-                </aside>
+                    <div class="btn-top-nav" id="navPesquisa" onclick="switchPublicSection('pesquisa')" title="Pesquisar">
+                        <i class="fas fa-search"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="public-layout">
 
                 <main class="public-main">
                     <div class="public-header">
@@ -445,10 +444,9 @@
                                                 pessoais são
                                                 coletados com finalidade de permitir o agendamento de atendimento e
                                                 serão
-                                                armazenados, utilizados e descartados de acordo com os <a
-                                                    href="#">Termos de
+                                                armazenados, utilizados e descartados de acordo com os <a href="javascript:void(0)" onclick="abrirTermosDeUso()">Termos de
                                                     Uso</a>
-                                                e <a href="#">Política de Privacidade</a>.</label>
+                                                e <a href="javascript:void(0)" onclick="abrirPoliticaPrivacidade()">Política de Privacidade</a>.</label>
                                         </div>
                                     </div>
                                 </div>

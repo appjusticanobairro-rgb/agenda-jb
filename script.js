@@ -35,19 +35,28 @@ let currentPublicAgenda = null; // Agenda ativa no momento (público)
 
 // Carregar dados da Nuvem (Google Sheets)
 async function carregarDados(isBackground = false) {
+    const loader = document.getElementById('loadingOverlay');
+    const cachedStr = localStorage.getItem('appDataCache');
+    const cacheTime = localStorage.getItem('appDataCacheTime');
+    const now = Date.now();
+    const CACHE_DURATION = 30 * 60 * 1000; // 30 minutos
+
+    const cacheValido = cachedStr && cacheTime && (now - parseInt(cacheTime) < CACHE_DURATION);
+    const isPublicPage = window.location.hash && window.location.hash.length > 2;
+    
+    // Só mostra o loader se NÃO estiver em background, NÃO tiver cache válido, e NÃO for página pública
+    if (!isBackground && !cacheValido && !isPublicPage && loader) {
+        loader.style.display = 'flex';
+    }
+    
     if (!isBackground) console.log("Solicitando dados da nuvem...");
     try {
-        const cachedStr = localStorage.getItem('appDataCache');
-        const cacheTime = localStorage.getItem('appDataCacheTime');
-        const now = Date.now();
-        const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
-
-        if (!isBackground && cachedStr && cacheTime && (now - parseInt(cacheTime) < CACHE_DURATION)) {
+        if (!isBackground && cacheValido) {
             console.log("Usando cache local para carregamento rápido.");
             try {
                 const data = JSON.parse(cachedStr);
                 processarDadosApp(data);
-                carregarDados(true); // Fetch in background to ensure freshness
+                carregarDados(true); // Atualiza em background sem incomodar
                 return true;
             } catch (e) {
                 console.error("Erro ao ler cache", e);
@@ -91,10 +100,12 @@ async function carregarDados(isBackground = false) {
 
         // Sessão do usuário local
         usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado')) || null;
+        if (!isBackground && loader) loader.style.display = 'none';
         return true;
 
     } catch (error) {
         console.error("Erro ao carregar dados da nuvem:", error);
+        if (loader) loader.style.display = 'none';
         if (!isBackground) showToast("Erro ao conectar com o banco de dados. Verifique sua conexão.", "error");
         return false;
     }
@@ -154,13 +165,18 @@ async function salvarDadosCloud(action, data) {
 }
 
 document.addEventListener('DOMContentLoaded', async function () {
-    // 1. Carregar dados da nuvem (essencial para verificar slugs)
+    const hash = window.location.hash;
+    
+    // Se NÃO for rota pública (sem hash), podemos mostrar o login/admin logo (usando cache se existir)
+    if (!hash || hash === "" || hash === "#" || hash === "#/") {
+        verificarRota();
+    }
+
+    // Carregar dados da nuvem
     await carregarDados();
 
-    // 2. Sincronizar sessão do usuário
+    // Sincronizar sessão e verificar rota final (importante para slugs que dependem de dados)
     usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado')) || null;
-
-    // 3. Verificar Rota ANTES de decidir mostrar o login
     verificarRota();
 
     // Listener para o Enter na tela de login
@@ -323,8 +339,6 @@ function realizarLogout() {
     usuarioLogado = null;
     localStorage.removeItem('usuarioLogado');
     window.location.hash = '';
-    // Recarregar dados ao sair para garantir que novos usuários criados sejam carregados
-    carregarDados();
     verificarRota();
 }
 
@@ -428,6 +442,9 @@ function mostrarPaginaAgendamento(agenda) {
                 inputSenha.value = '';
             }
         }
+
+        // Garante que o ícone do topo esteja no estado inicial correto
+        switchPublicSection('novo');
 
         // 5. Carregar dados dependentes
         carregarServicosPublic(agenda);
@@ -678,51 +695,49 @@ function confirmarAgendamento() {
     const termos = document.getElementById('termosAceite').checked;
 
     if (!nome) return showToast('Nome é obrigatório', 'error');
-    // Telefone is optional now
     if (!termos) return showToast('Aceite os termos', 'error');
-
     // Show loading
     showLoading();
 
-    setTimeout(async () => {
-        // Final Capacity Check
-        const agenda = agendas.find(a => a.id == agendamentoData.agendaId);
-        const count = agendamentos.filter(a =>
-            String(a.agendaId) === String(agenda.id) &&
-            a.data === agendamentoData.data &&
-            a.horario === agendamentoData.horario &&
-            a.codigo !== agendamentoData.codigo
-        ).length;
+    // Final Capacity Check
+    const agenda = agendas.find(a => a.id == agendamentoData.agendaId);
+    const count = agendamentos.filter(a =>
+        String(a.agendaId) === String(agenda.id) &&
+        a.data === agendamentoData.data &&
+        a.horario === agendamentoData.horario &&
+        a.codigo !== agendamentoData.codigo
+    ).length;
 
-        const max = parseInt(agenda.maxAgendamentosHorario, 10) || 1;
-        if (count >= max) {
-            hideLoading();
-            showToast('Horário esgotado! Selecione outro horário.', 'error');
-            voltarStep();
-            gerarHorariosDisponiveis(agendamentoData.data);
-            return;
-        }
-
-        agendamentoData.nome = nome;
-        agendamentoData.telefone = telefone || 'Não informado';
-        agendamentoData.cpf = '-';
-        agendamentoData.email = '-';
-
-        // Se não tem código (novo agendamento), gera um
-        if (!agendamentoData.codigo) {
-            agendamentoData.codigo = Math.random().toString(36).substr(2, 7).toUpperCase();
-            agendamentos.push(agendamentoData);
-        } else {
-            // Se já tem código, atualiza no array local também
-            const idx = agendamentos.findIndex(a => a.codigo === agendamentoData.codigo);
-            if (idx !== -1) agendamentos[idx] = { ...agendamentoData };
-        }
-
-        await salvarDadosCloud('saveAgendamento', agendamentoData);
-
+    const max = parseInt(agenda.maxAgendamentosHorario, 10) || 1;
+    if (count >= max) {
         hideLoading();
-        mostrarConfirmacao();
-    }, 500); // Small delay to let spinner appear
+        showToast('Horário esgotado! Selecione outro horário.', 'error');
+        voltarStep();
+        gerarHorariosDisponiveis(agendamentoData.data);
+        return;
+    }
+
+    agendamentoData.nome = nome;
+    agendamentoData.telefone = telefone || 'Não informado';
+    agendamentoData.cpf = '-';
+    agendamentoData.email = '-';
+
+    // Se não tem código (novo agendamento), gera um
+    if (!agendamentoData.codigo) {
+        agendamentoData.codigo = Math.random().toString(36).substr(2, 7).toUpperCase();
+        agendamentos.push(agendamentoData);
+    } else {
+        // Se já tem código, atualiza no array local também
+        const idx = agendamentos.findIndex(a => a.codigo === agendamentoData.codigo);
+        if (idx !== -1) agendamentos[idx] = { ...agendamentoData };
+    }
+
+    // Mostra a confirmação IMEDIATAMENTE e salva em background
+    hideLoading();
+    mostrarConfirmacao();
+
+    // Salva na nuvem em background (sem bloquear a tela)
+    salvarDadosCloud('saveAgendamento', agendamentoData);
 }
 
 function mostrarConfirmacao() {
@@ -781,24 +796,32 @@ async function cancelarAgendamento() {
         showLoading();
 
         if (agendamentoData && agendamentoData.codigo) {
-            const sucesso = await salvarDadosCloud('deleteAgendamento', { codigo: agendamentoData.codigo });
-            if (sucesso) {
-                agendamentoData = {};
-                showToast('Agendamento cancelado com sucesso.');
-                // Retornar para tela inicial mantendo o slug
-                setTimeout(() => {
-                    const url = window.location.href.split('#')[0];
-                    const hash = window.location.hash;
-                    window.location.href = url + (hash || '');
-                    window.location.reload();
-                }, 1000);
-            } else {
-                hideLoading();
-            }
+            // Remove do array local imediatamente
+            const idx = agendamentos.findIndex(a => a.codigo === agendamentoData.codigo);
+            if (idx !== -1) agendamentos.splice(idx, 1);
+            
+            // Guarda código antes de limpar
+            const codigoParaDeletar = agendamentoData.codigo;
+            
+            // Navega de volta sem recarregar a página
+            hideLoading();
+            agendamentoData = {};
+            showToast('Agendamento cancelado com sucesso.');
+            
+            // Volta pra tela de agendamento
+            document.getElementById('confirmacaoPage').classList.remove('active');
+            document.getElementById('agendamentoPage').classList.add('active');
+            switchPublicSection('novo');
+            
+            // Exclui na nuvem em background
+            salvarDadosCloud('deleteAgendamento', { codigo: codigoParaDeletar });
         } else {
             // Se ainda não salvou na nuvem, apenas reseta
             agendamentoData = {};
-            window.location.reload();
+            hideLoading();
+            document.getElementById('confirmacaoPage').classList.remove('active');
+            document.getElementById('agendamentoPage').classList.add('active');
+            switchPublicSection('novo');
         }
     }
 }
@@ -813,13 +836,13 @@ function switchPublicSection(section) {
     const secPesquisa = document.getElementById('pesquisaAgendamentoSection');
 
     if (section === 'novo') {
-        if (navNovo) navNovo.classList.add('active');
-        if (navPesquisa) navPesquisa.classList.remove('active');
+        if (navNovo) navNovo.classList.add('active-teal');
+        if (navPesquisa) navPesquisa.classList.remove('active-teal');
         if (secNovo) secNovo.style.display = 'block';
         if (secPesquisa) secPesquisa.style.display = 'none';
     } else if (section === 'pesquisa') {
-        if (navNovo) navNovo.classList.remove('active');
-        if (navPesquisa) navPesquisa.classList.add('active');
+        if (navNovo) navNovo.classList.remove('active-teal');
+        if (navPesquisa) navPesquisa.classList.add('active-teal');
         if (secNovo) secNovo.style.display = 'none';
         if (secPesquisa) secPesquisa.style.display = 'block';
     }
@@ -2225,3 +2248,61 @@ function hideLoading() {
         overlay.style.display = 'none';
     }
 }
+// --- FUNÇÕES LEGAIS ---
+function abrirTermosDeUso() {
+    const conteudo = `
+        <div style="text-align: left; line-height: 1.6; color: #444;">
+            <h3>Termos de Uso</h3>
+            <p><strong>1. Finalidade:</strong> Os dados coletados destinam-se exclusivamente ao agendamento de atendimentos no Programa Justiça no Bairro.</p>
+            <p><strong>2. Coleta de Dados:</strong> Coletamos nome, CPF, e-mail e telefone para identificar o cidadão e facilitar a comunicação sobre o agendamento.</p>
+            <p><strong>3. Armazenamento:</strong> Os dados são armazenados de forma segura em infraestrutura de nuvem (Google Cloud) e acessados apenas por pessoal autorizado.</p>
+            <p><strong>4. Responsabilidade:</strong> O usuário é responsável pela veracidade dos dados informados.</p>
+            <p><strong>5. Cancelamento:</strong> O usuário pode solicitar a exclusão de seus dados após o atendimento, conforme a LGPD.</p>
+        </div>
+    `;
+    mostrarModalGeral("Termos de Uso", conteudo);
+}
+
+function abrirPoliticaPrivacidade() {
+    const conteudo = `
+        <div style="text-align: left; line-height: 1.6; color: #444;">
+            <h3>Política de Privacidade</h3>
+            <p>Esta política descreve como tratamos suas informações pessoais:</p>
+            <ul>
+                <li><strong>Privacidade:</strong> Não compartilhamos seus dados com terceiros para fins comerciais.</li>
+                <li><strong>Uso:</strong> Seus dados são usados apenas para a gestão das agendas e estatísticas internas do programa.</li>
+                <li><strong>Segurança:</strong> Utilizamos protocolos de segurança para proteger suas informações contra acesso não autorizado.</li>
+                <li><strong>Direitos:</strong> Você tem o direito de consultar, corrigir ou excluir seus dados a qualquer momento.</li>
+            </ul>
+        </div>
+    `;
+    mostrarModalGeral("Política de Privacidade", conteudo);
+}
+
+function mostrarModalGeral(titulo, html) {
+    const overlay = document.getElementById('modalOverlay');
+    const title = document.getElementById('modalTitle');
+    const body = document.getElementById('modalBody');
+    
+    if (overlay && title && body) {
+        title.innerText = titulo;
+        body.innerHTML = html;
+        overlay.style.display = 'flex';
+        
+        // Esconde botões do footer se for apenas informativo
+        const footer = overlay.querySelector('.modal-footer');
+        if (footer) footer.style.display = 'none';
+    }
+}
+
+// Sobrescrever closeModal para garantir que o footer volte ao normal
+const originalCloseModal = window.closeModal;
+window.closeModal = function() {
+    const footer = document.querySelector('.modal-overlay .modal-footer');
+    if (footer) footer.style.display = 'flex';
+    if (typeof originalCloseModal === 'function') originalCloseModal();
+    else {
+        const overlay = document.getElementById('modalOverlay');
+        if (overlay) overlay.style.display = 'none';
+    }
+};
