@@ -8,7 +8,7 @@ let agendamentos = [];
 let usuarios = [];
 let usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado')) || null;
 
-// Defaults para migração
+// Defaults para migraﾃｧﾃ｣o
 const USUARIOS_DEFAULT = [
     {
         id: 1,
@@ -20,9 +20,9 @@ const USUARIOS_DEFAULT = [
     }
 ];
 
-// Defaults para migração
+// Defaults para migraﾃｧﾃ｣o
 const defaultServices = [
-    { nome: "01 - Alimentos (pensão alimentícia)", duracao: 60 },
+    { nome: "01 - Alimentos (pensﾃ｣o alimentﾃｭcia)", duracao: 60 },
     { nome: "23 - RG", duracao: 15 },
     { nome: "20 - Coleta de Exame de DNA", duracao: 30 }
 ];
@@ -31,7 +31,7 @@ let editingAgendaId = null;
 let editingUsuarioId = null; // State for user editing
 let currentStep = 1;
 let agendamentoData = {};
-let currentPublicAgenda = null; // Agenda ativa no momento (público)
+let currentPublicAgenda = null; // Agenda ativa no momento (pﾃｺblico)
 
 // Carregar dados da Nuvem (Google Sheets)
 async function carregarDados(isBackground = false) {
@@ -44,7 +44,7 @@ async function carregarDados(isBackground = false) {
     const cacheValido = cachedStr && cacheTime && (now - parseInt(cacheTime) < CACHE_DURATION);
     const isPublicPage = window.location.hash && window.location.hash.length > 2;
     
-    // Só mostra o loader se NÃO estiver em background, NÃO tiver cache válido, e NÃO for página pública
+    // Sﾃｳ mostra o loader se Nﾃグ estiver em background, Nﾃグ tiver cache vﾃ｡lido, e Nﾃグ for pﾃ｡gina pﾃｺblica
     if (!isBackground && !cacheValido && !isPublicPage && loader) {
         loader.style.display = 'flex';
     }
@@ -52,7 +52,7 @@ async function carregarDados(isBackground = false) {
     if (!isBackground) console.log("Solicitando dados da nuvem...");
     try {
         if (!isBackground && cacheValido) {
-            console.log("Usando cache local para carregamento rápido.");
+            console.log("Usando cache local para carregamento rﾃ｡pido.");
             try {
                 const data = JSON.parse(cachedStr);
                 processarDadosApp(data);
@@ -63,7 +63,7 @@ async function carregarDados(isBackground = false) {
             }
         }
 
-        if (!isBackground) console.log("Sem cache válido. Buscando na nuvem...");
+        if (!isBackground) console.log("Sem cache vﾃ｡lido. Buscando na nuvem...");
         const response = await fetch(`${API_URL}?action=getData&t=${Date.now()}`);
         const data = await response.json();
 
@@ -73,32 +73,32 @@ async function carregarDados(isBackground = false) {
 
         processarDadosApp(data);
 
-        // Auto-seed: Se a planilha está vazia, popular com dados iniciais
+        // Auto-seed: Se a planilha estﾃ｡ vazia, popular com dados iniciais
         if (!isBackground) {
             if (usuarios.length === 0) {
-                console.log("Nenhum usuário na nuvem. Criando admin padrão...");
+                console.log("Nenhum usuﾃ｡rio na nuvem. Criando admin padrﾃ｣o...");
                 for (const u of USUARIOS_DEFAULT) {
                     await salvarDadosCloud('saveUsuario', u);
                 }
                 usuarios = [...USUARIOS_DEFAULT];
             }
             if (!data.servicos || data.servicos.length === 0) {
-                console.log("Sem serviços na nuvem. Enviando defaults...");
+                console.log("Sem serviﾃｧos na nuvem. Enviando defaults...");
                 await salvarDadosCloud('saveServicos', defaultServices);
             }
             if (!data.enderecos || data.enderecos.length === 0) {
-                console.log("Sem endereços na nuvem. Enviando default...");
+                console.log("Sem endereﾃｧos na nuvem. Enviando default...");
                 await salvarDadosCloud('saveEnderecos', enderecosDisponiveis);
             }
         } else {
-            // Se estiver em background e no Admin, renderizar para mostrar possíveis novos dados silenciosamente
+            // Se estiver em background e no Admin, renderizar para mostrar possﾃｭveis novos dados silenciosamente
             const adminPage = document.getElementById('adminPage');
             if (adminPage && adminPage.style.display !== 'none' && typeof renderAgendas === 'function') {
                 renderAgendas();
             }
         }
 
-        // Sessão do usuário local
+        // Sessﾃ｣o do usuﾃ｡rio local
         usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado')) || null;
         if (!isBackground && loader) loader.style.display = 'none';
         return true;
@@ -106,7 +106,7 @@ async function carregarDados(isBackground = false) {
     } catch (error) {
         console.error("Erro ao carregar dados da nuvem:", error);
         if (loader) loader.style.display = 'none';
-        if (!isBackground) showToast("Erro ao conectar com o banco de dados. Verifique sua conexão.", "error");
+        if (!isBackground) showToast("Erro ao conectar com o banco de dados. Verifique sua conexﾃ｣o.", "error");
         return false;
     }
 }
@@ -126,9 +126,9 @@ function processarDadosApp(data) {
     }));
     usuarios = data.usuarios || [];
 
-    // Servicos e Endereços: usar defaults se vazios
+    // Servicos e Endereﾃｧos: usar defaults se vazios
     servicosDisponiveis = (data.servicos && data.servicos.length > 0) ? data.servicos : defaultServices;
-    enderecosDisponiveis = (data.enderecos && data.enderecos.length > 0) ? data.enderecos : ["Av. Pres. Kennedy, n.º 900, Bairro Centro, Telêmaco Borba"];
+    enderecosDisponiveis = (data.enderecos && data.enderecos.length > 0) ? data.enderecos : ["Av. Pres. Kennedy, n.ﾂｺ 900, Bairro Centro, Telﾃｪmaco Borba"];
 
     console.log("Dados processados com sucesso.");
 }
@@ -136,7 +136,7 @@ function processarDadosApp(data) {
 // Salvar dados na Nuvem (Google Sheets via Apps Script)
 async function salvarDadosCloud(action, data) {
     try {
-        console.log(`Enviando ação '${action}' para a nuvem...`);
+        console.log(`Enviando aﾃｧﾃ｣o '${action}' para a nuvem...`);
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -147,7 +147,7 @@ async function salvarDadosCloud(action, data) {
         console.log("Resposta da nuvem:", result);
 
         if (result.status === 'success') {
-            // Invalidar o cache após uma alteração bem-sucedida para forçar o download na próxima recarga
+            // Invalidar o cache apﾃｳs uma alteraﾃｧﾃ｣o bem-sucedida para forﾃｧar o download na prﾃｳxima recarga
             localStorage.removeItem('appDataCache');
             localStorage.removeItem('appDataCacheTime');
             showToast('Dados sincronizados!', 'success');
@@ -159,7 +159,7 @@ async function salvarDadosCloud(action, data) {
         }
     } catch (error) {
         console.error("Erro ao salvar dados na nuvem:", error);
-        showToast("Erro de conexão. Verifique sua rede.", "error");
+        showToast("Erro de conexﾃ｣o. Verifique sua rede.", "error");
         return false;
     }
 }
@@ -167,7 +167,7 @@ async function salvarDadosCloud(action, data) {
 document.addEventListener('DOMContentLoaded', async function () {
     const hash = window.location.hash;
     
-    // Se NÃO for rota pública (sem hash), podemos mostrar o login/admin logo (usando cache se existir)
+    // Se Nﾃグ for rota pﾃｺblica (sem hash), podemos mostrar o login/admin logo (usando cache se existir)
     if (!hash || hash === "" || hash === "#" || hash === "#/") {
         verificarRota();
     }
@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Carregar dados da nuvem
     await carregarDados();
 
-    // Sincronizar sessão e verificar rota final (importante para slugs que dependem de dados)
+    // Sincronizar sessﾃ｣o e verificar rota final (importante para slugs que dependem de dados)
     usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado')) || null;
     verificarRota();
 
@@ -193,7 +193,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
 });
 
-// Sincronização via hashchange (navegação entre páginas)
+// Sincronizaﾃｧﾃ｣o via hashchange (navegaﾃｧﾃ｣o entre pﾃ｡ginas)
 window.addEventListener('hashchange', () => verificarRota());
 
 // --- ROTEAMENTO ---
@@ -206,16 +206,16 @@ function verificarRota() {
 
     console.log("Hash:", hash);
 
-    // 1. ISOLAMENTO TOTAL: Se houver um slug no hash, tratamos como rota pública
+    // 1. ISOLAMENTO TOTAL: Se houver um slug no hash, tratamos como rota pﾃｺblica
     if (hash && hash.length > 1) {
         let slugRaw = hash.startsWith('#/') ? hash.substring(2) : hash.substring(1);
         const slug = decodeURIComponent(slugRaw).trim().toLowerCase();
 
-        // Ignorar se o hash for apenas "/" ou caminhos vazios que não são slugs
+        // Ignorar se o hash for apenas "/" ou caminhos vazios que nﾃ｣o sﾃ｣o slugs
         if (slug && slug !== "" && slug !== "/" && slug !== "index.html") {
             console.log("Rota de slug detectada:", slug);
 
-            // Busca insensível a maiúsculas/minúsculas
+            // Busca insensﾃｭvel a maiﾃｺsculas/minﾃｺsculas
             const agendaFound = agendas.find(a => a.slug.toLowerCase() === slug);
 
             if (agendaFound) {
@@ -241,27 +241,27 @@ function verificarRota() {
                 } else {
                     mostrarPaginaDesativada();
                 }
-                return; // Encerra aqui. NUNCA chegará no redirecionamento de login.
+                return; // Encerra aqui. NUNCA chegarﾃ｡ no redirecionamento de login.
             } else {
-                console.warn(`Slug '${slug}' não encontrado localmente.`);
+                console.warn(`Slug '${slug}' nﾃ｣o encontrado localmente.`);
 
-                // Se o slug foi digitado mas a agenda não existe neste navegador/dispositivo
-                // mostramos a página de erro pública, SEM redirecionar para login.
-                mostrarPaginaDesativada("Agenda não encontrada", "Esta agenda não existe neste dispositivo ou navegador. Verifique se o link está correto ou se os dados foram criados em outro computador.");
+                // Se o slug foi digitado mas a agenda nﾃ｣o existe neste navegador/dispositivo
+                // mostramos a pﾃ｡gina de erro pﾃｺblica, SEM redirecionar para login.
+                mostrarPaginaDesativada("Agenda nﾃ｣o encontrada", "Esta agenda nﾃ｣o existe neste dispositivo ou navegador. Verifique se o link estﾃ｡ correto ou se os dados foram criados em outro computador.");
                 return; // Encerra aqui.
             }
         }
     }
 
-    // 2. Fluxo Administrativo (apenas se NÃO houver slug no link)
+    // 2. Fluxo Administrativo (apenas se Nﾃグ houver slug no link)
     if (!usuarioLogado) {
-        console.log("Nenhum slug detectado e usuário não logado. Mostrando login.");
+        console.log("Nenhum slug detectado e usuﾃ｡rio nﾃ｣o logado. Mostrando login.");
         showLogin();
         return;
     }
 
-    // Usuário Logado - Área Admin
-    console.log("Acessando área administrativa.");
+    // Usuﾃ｡rio Logado - ﾃ〉ea Admin
+    console.log("Acessando ﾃ｡rea administrativa.");
     mostrarAdmin();
 }
 
@@ -299,27 +299,27 @@ function realizarLogin() {
     const passInput = document.getElementById('loginPass');
 
     if (!userInput || !passInput) {
-        console.error("Campos de login não encontrados no DOM");
+        console.error("Campos de login nﾃ｣o encontrados no DOM");
         return;
     }
 
     const user = userInput.value.trim().toLowerCase();
     const pass = passInput.value.trim();
 
-    console.log(`Usuário digitado: ${user}`);
+    console.log(`Usuﾃ｡rio digitado: ${user}`);
 
     if (!user || !pass) {
-        return showToast('Preencha usuário e senha', 'error');
+        return showToast('Preencha usuﾃ｡rio e senha', 'error');
     }
 
     const userFound = usuarios.find(u => String(u.login || '').toLowerCase().trim() === user);
 
     if (userFound) {
-        // Garantir comparação como string (evita falha se a senha na planilha for um número)
+        // Garantir comparaﾃｧﾃ｣o como string (evita falha se a senha na planilha for um nﾃｺmero)
         if (String(userFound.senha) === String(pass)) {
-            console.log("Usuário encontrado! Perfil:", userFound.perfil);
+            console.log("Usuﾃ｡rio encontrado! Perfil:", userFound.perfil);
             if (userFound.status !== 'Ativo') {
-                return showToast('Usuário inativo', 'error');
+                return showToast('Usuﾃ｡rio inativo', 'error');
             }
             usuarioLogado = userFound;
             localStorage.setItem('usuarioLogado', JSON.stringify(userFound));
@@ -330,8 +330,8 @@ function realizarLogin() {
             showToast('Senha incorreta', 'error');
         }
     } else {
-        console.log("Usuário não encontrado.");
-        showToast('Usuário não encontrado', 'error');
+        console.log("Usuﾃ｡rio nﾃ｣o encontrado.");
+        showToast('Usuﾃ｡rio nﾃ｣o encontrado', 'error');
     }
 }
 
@@ -396,7 +396,7 @@ function mostrarPaginaAgendamento(agenda) {
     
     console.log("--- mostrarPaginaAgendamento ---", agenda.nome);
     try {
-        // 1. Visibilidade básica
+        // 1. Visibilidade bﾃ｡sica
         document.body.classList.add('no-header');
         document.body.classList.remove('login-active');
         if (document.getElementById('adminPage')) document.getElementById('adminPage').style.display = 'none';
@@ -415,16 +415,16 @@ function mostrarPaginaAgendamento(agenda) {
             selectAgenda.value = String(agenda.id);
             selectAgenda.disabled = true;
 
-            // Reforço com delay (caso algum script de terceiros ou reset ocorra)
+            // Reforﾃｧo com delay (caso algum script de terceiros ou reset ocorra)
             setTimeout(() => {
                 selectAgenda.innerHTML = opt;
                 selectAgenda.value = String(agenda.id);
                 selectAgenda.disabled = true;
-                console.log("Reforço de seleção aplicado.");
+                console.log("Reforﾃｧo de seleﾃｧﾃ｣o aplicado.");
             }, 100);
         }
 
-        // 3. Textos de Título
+        // 3. Textos de Tﾃｭtulo
         if (document.getElementById('publicAgendaNome')) document.getElementById('publicAgendaNome').textContent = agenda.nome;
         // confirmAgendaNome doesn't exist, using confirmAgenda instead if it exists
         if (document.getElementById('confirmAgenda')) document.getElementById('confirmAgenda').textContent = agenda.nome;
@@ -443,7 +443,7 @@ function mostrarPaginaAgendamento(agenda) {
             }
         }
 
-        // Garante que o ícone do topo esteja no estado inicial correto
+        // Garante que o ﾃｭcone do topo esteja no estado inicial correto
         switchPublicSection('novo');
 
         // 5. Carregar dados dependentes
@@ -453,29 +453,29 @@ function mostrarPaginaAgendamento(agenda) {
         const grid = document.getElementById('horariosGrid');
         if (grid) grid.innerHTML = '';
         const help = document.getElementById('horarioHelp');
-        if (help) help.textContent = 'Selecione uma data para ver os horários';
+        if (help) help.textContent = 'Selecione uma data para ver os horﾃ｡rios';
 
     } catch (e) {
-        console.error("Erro crítico em mostrarPaginaAgendamento:", e);
+        console.error("Erro crﾃｭtico em mostrarPaginaAgendamento:", e);
     }
 }
 
-// Handler para o onchange do HTML (se necessário)
+// Handler para o onchange do HTML (se necessﾃ｡rio)
 function carregarServicos() {
     const hash = window.location.hash;
     if (hash && hash.length > 1) {
-        // Se estiver em rota pública, não faz nada (está travado)
+        // Se estiver em rota pﾃｺblica, nﾃ｣o faz nada (estﾃ｡ travado)
         return;
     }
 }
 
 // window.addEventListener('hashchange', verificarRota); // Removido redundante
 
-// --- AGENDAMENTO PÚBLICO ---
+// --- AGENDAMENTO Pﾃ咤LICO ---
 
 function carregarServicosPublic(agenda) {
     const selectServico = document.getElementById('publicServicoSelect');
-    selectServico.innerHTML = '<option value="">Selecione um serviço</option>';
+    selectServico.innerHTML = '<option value="">Selecione um serviﾃｧo</option>';
 
     agenda.servicos.forEach(sName => {
         // Find full object definition
@@ -561,7 +561,7 @@ function gerarHorariosDisponiveis(dataStr) {
     const servicoSelect = document.getElementById('publicServicoSelect');
     const option = servicoSelect.options[servicoSelect.selectedIndex];
     if (!option.value) {
-        horariosGrid.innerHTML = '<p class="help-text">Selecione um serviço primeiro.</p>';
+        horariosGrid.innerHTML = '<p class="help-text">Selecione um serviﾃｧo primeiro.</p>';
         return;
     }
     const duracao = parseInt(option.dataset.duracao) || 30;
@@ -604,7 +604,7 @@ function gerarHorariosDisponiveis(dataStr) {
         }
     });
 
-    horariosGrid.innerHTML = html || '<p>Não há horários disponíveis para este dia.</p>';
+    horariosGrid.innerHTML = html || '<p>Nﾃ｣o hﾃ｡ horﾃ｡rios disponﾃｭveis para este dia.</p>';
 }
 
 function gerarSlotsPorDuracao(inicio, fim, duracao) {
@@ -636,7 +636,7 @@ function selecionarHorario(elm, horario) {
     document.querySelectorAll('.horario-btn').forEach(btn => btn.classList.remove('selected'));
     elm.classList.add('selected');
     agendamentoData.horario = horario;
-    document.getElementById('horarioHelp').textContent = `Horário: ${horario}`;
+    document.getElementById('horarioHelp').textContent = `Horﾃ｡rio: ${horario}`;
 }
 
 function proximoStep() {
@@ -654,9 +654,9 @@ function proximoStep() {
         }
     }
 
-    if (!servico) return showToast('Selecione um serviço', 'error');
+    if (!servico) return showToast('Selecione um serviﾃｧo', 'error');
     if (!agendamentoData.data) return showToast('Selecione uma data', 'error');
-    if (!agendamentoData.horario) return showToast('Selecione um horário', 'error');
+    if (!agendamentoData.horario) return showToast('Selecione um horﾃ｡rio', 'error');
 
     agendamentoData.agendaId = agendaId;
     agendamentoData.servico = servico;
@@ -667,7 +667,7 @@ function proximoStep() {
     document.getElementById('step1Content').style.display = 'none';
     document.getElementById('step2Content').style.display = 'block';
 
-    // Hide CPF/Email (Formulário Simplificado)
+    // Hide CPF/Email (Formulﾃ｡rio Simplificado)
     document.getElementById('publicCPF').closest('.form-row-single').style.display = 'none';
     document.getElementById('publicEmail').closest('.form-row-single').style.display = 'none';
 
@@ -694,7 +694,7 @@ async function confirmarAgendamento() {
     const telefone = document.getElementById('publicTelefone').value.trim();
     const termos = document.getElementById('termosAceite').checked;
 
-    if (!nome) return showToast('Nome é obrigatório', 'error');
+    if (!nome) return showToast('Nome ﾃｩ obrigatﾃｳrio', 'error');
     if (!termos) return showToast('Aceite os termos', 'error');
     // Show loading
     showLoading();
@@ -711,23 +711,23 @@ async function confirmarAgendamento() {
     const max = parseInt(agenda.maxAgendamentosHorario, 10) || 1;
     if (count >= max) {
         hideLoading();
-        showToast('Horário esgotado! Selecione outro horário.', 'error');
+        showToast('Horﾃ｡rio esgotado! Selecione outro horﾃ｡rio.', 'error');
         voltarStep();
         gerarHorariosDisponiveis(agendamentoData.data);
         return;
     }
 
     agendamentoData.nome = nome;
-    agendamentoData.telefone = telefone || 'Não informado';
+    agendamentoData.telefone = telefone || 'Nﾃ｣o informado';
     agendamentoData.cpf = '-';
     agendamentoData.email = '-';
 
-    // Se não tem código (novo agendamento), gera um
+    // Se nﾃ｣o tem cﾃｳdigo (novo agendamento), gera um
     if (!agendamentoData.codigo) {
         agendamentoData.codigo = Math.random().toString(36).substr(2, 7).toUpperCase();
         agendamentos.push(agendamentoData);
     } else {
-        // Se já tem código, atualiza no array local também
+        // Se jﾃ｡ tem cﾃｳdigo, atualiza no array local tambﾃｩm
         const idx = agendamentos.findIndex(a => a.codigo === agendamentoData.codigo);
         if (idx !== -1) agendamentos[idx] = { ...agendamentoData };
     }
@@ -765,14 +765,14 @@ function novoAgendamento() {
         agendamentoData = {};
         const url = window.location.href.split('#')[0];
         const hash = window.location.hash;
-        window.location.href = url + hash; // Mantém o hash da agenda
+        window.location.href = url + hash; // Mantﾃｩm o hash da agenda
         window.location.reload();
     }
 }
 
 function editarAgendamento() {
-    console.log("Retornando ao formulário para edição...");
-    // 1. Visibilidade de páginas
+    console.log("Retornando ao formulﾃ｡rio para ediﾃｧﾃ｣o...");
+    // 1. Visibilidade de pﾃ｡ginas
     document.getElementById('confirmacaoPage').classList.remove('active');
     document.getElementById('agendamentoPage').classList.add('active');
 
@@ -782,7 +782,7 @@ function editarAgendamento() {
     document.getElementById('step2Indicator').classList.remove('active');
     document.getElementById('step1Indicator').classList.add('active');
 
-    // 3. Reseta botões
+    // 3. Reseta botﾃｵes
     document.getElementById('btnVoltar').style.display = 'none';
     document.getElementById('btnProximo').style.display = 'flex';
     document.getElementById('btnConfirmar').style.display = 'none';
@@ -791,7 +791,7 @@ function editarAgendamento() {
 }
 
 async function cancelarAgendamento() {
-    if (confirm('Tem certeza que deseja CANCELAR este agendamento? Ele será excluído permanentemente da nuvem.')) {
+    if (confirm('Tem certeza que deseja CANCELAR este agendamento? Ele serﾃ｡ excluﾃｭdo permanentemente da nuvem.')) {
         showLoading();
 
         if (agendamentoData && agendamentoData.codigo) {
@@ -799,6 +799,7 @@ async function cancelarAgendamento() {
             const idx = agendamentos.findIndex(a => a.codigo === agendamentoData.codigo);
             if (idx !== -1) agendamentos.splice(idx, 1);
             
+            // Guarda cﾃｳdigo antes de limpar
             // Guarda código antes de limpar
             const codigoParaDeletar = agendamentoData.codigo;
             
@@ -821,6 +822,44 @@ async function cancelarAgendamento() {
     }
 }
 
+
+function resetFormularioAgendamento() {
+    console.log('--- resetFormularioAgendamento ---');
+    agendamentoData = {};
+    currentStep = 1;
+    document.querySelectorAll('.public-page').forEach(p => p.classList.remove('active'));
+    const agendamentoPage = document.getElementById('agendamentoPage');
+    if (agendamentoPage) agendamentoPage.classList.add('active');
+    if (typeof currentPublicAgenda !== 'undefined' && currentPublicAgenda) {
+        mostrarPaginaAgendamento(currentPublicAgenda);
+    }
+    switchPublicSection('novo');
+    const s1 = document.getElementById('step1Content');
+    const s2 = document.getElementById('step2Content');
+    if (s1) s1.style.display = 'block';
+    if (s2) s2.style.display = 'none';
+    const i1 = document.getElementById('step1Indicator');
+    const i2 = document.getElementById('step2Indicator');
+    if (i1) i1.classList.add('active');
+    if (i2) i2.classList.remove('active');
+    const bV = document.getElementById('btnVoltar');
+    const bP = document.getElementById('btnProximo');
+    const bC = document.getElementById('btnConfirmar');
+    if (bV) bV.style.display = 'none';
+    if (bP) bP.style.display = 'flex';
+    if (bC) bC.style.display = 'none';
+    ['publicNome', 'publicTelefone', 'publicCPF', 'publicEmail', 'termosAceite'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { if (el.type === 'checkbox') el.checked = false; else el.value = ''; }
+    });
+    document.querySelectorAll('.dia-btn.selected').forEach(b => b.classList.remove('selected'));
+    document.querySelectorAll('.horario-btn.selected').forEach(b => b.classList.remove('selected'));
+    const hG = document.getElementById('horariosGrid');
+    if (hG) hG.innerHTML = '';
+    const hH = document.getElementById('horarioHelp');
+    if (hH) hH.textContent = 'Selecione uma data para ver os hor�rios';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
 // --- NAVEGAÇÃO PÚBLICA & PESQUISA ---
 
@@ -858,7 +897,7 @@ function pesquisarAgendamento() {
         return;
     }
 
-    // Filtrar agendamentos por nome, telefone ou código E PELA AGENDA ATUAL
+    // Filtrar agendamentos por nome, telefone ou cﾃｳdigo E PELA AGENDA ATUAL
     const filtered = agendamentos.filter(a => 
         String(a.agendaId) === String(currentPublicAgenda ? currentPublicAgenda.id : '') && (
             (a.nome || '').toLowerCase().includes(query) ||
@@ -898,7 +937,7 @@ function exibirAgendamentoConsultado(codigo) {
     if (found) {
         agendamentoData = { ...found };
         
-        // CORREÇÃO: Repopular nome da agenda e endereço caso venham vazios da nuvem
+        // CORREﾃ�グ: Repopular nome da agenda e endereﾃｧo caso venham vazios da nuvem
         if (!agendamentoData.agendaNome || !agendamentoData.endereco) {
             const agenda = agendas.find(g => String(g.id) === String(found.agendaId));
             if (agenda) {
@@ -907,17 +946,17 @@ function exibirAgendamentoConsultado(codigo) {
             }
         }
         
-        // Garantir que a tela de confirmação mostre os dados
+        // Garantir que a tela de confirmaﾃｧﾃ｣o mostre os dados
         mostrarConfirmacao();
         
-        // OCULTAR botões de edição/cancelamento quando vem da consulta por pesquisa
+        // OCULTAR botﾃｵes de ediﾃｧﾃ｣o/cancelamento quando vem da consulta por pesquisa
         if (document.getElementById('btnReciboEditar')) document.getElementById('btnReciboEditar').style.display = 'none';
         if (document.getElementById('btnReciboCancelar')) document.getElementById('btnReciboCancelar').style.display = 'none';
         
         // Scroll para o topo
         window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-        showToast('Agendamento não encontrado', 'error');
+        showToast('Agendamento nﾃ｣o encontrado', 'error');
     }
 }
 
@@ -1038,7 +1077,7 @@ function renderAgendas(filtered = null) {
         const formatSheetDate = (d) => {
             if (!d) return '---';
             const s = String(d).trim();
-            // Se já estiver em DD/MM/YYYY, retorna direto
+            // Se jﾃ｡ estiver em DD/MM/YYYY, retorna direto
             if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)) return s;
             // Se estiver em YYYY-MM-DD ou ISO
             const datePart = s.includes('T') ? s.split('T')[0] : s;
@@ -1068,7 +1107,7 @@ function renderAgendas(filtered = null) {
             const times = slots.map(s => `${s.inicio} - ${s.fim}`).join(' | ');
             return `<div>${label}: ${times}</div>`;
         }).join('');
-        if (horariosHtml === '') horariosHtml = '<div>Sem horários cadastrados</div>';
+        if (horariosHtml === '') horariosHtml = '<div>Sem horﾃ｡rios cadastrados</div>';
 
         return `
         <div class="agenda-card" style="border-top: 5px solid ${agenda.status === 'active' ? 'var(--success)' : 'var(--danger)'}">
@@ -1077,7 +1116,7 @@ function renderAgendas(filtered = null) {
                     <h3 class="card-title" style="font-size: 20px;">${agenda.nome}</h3>
                 </div>
                 <div class="card-actions admin-only flex">
-                    <button class="icon-btn settings" title="Configurações" onclick="editAgenda(${agenda.id})" style="background: #e3f2fd; color: #2196f3;"><i class="fas fa-cog"></i></button>
+                    <button class="icon-btn settings" title="Configuraﾃｧﾃｵes" onclick="editAgenda(${agenda.id})" style="background: #e3f2fd; color: #2196f3;"><i class="fas fa-cog"></i></button>
                     <button class="icon-btn copy" title="Duplicar/Copiar" onclick="navigator.clipboard.writeText('${link}'); showToast('Link Copiado!')" style="background: #e8f5e9; color: #4caf50;"><i class="fas fa-copy"></i></button>
                     <button class="icon-btn delete" title="Excluir Agenda" onclick="excluirAgenda(${agenda.id})" style="background: #ffebee; color: #f44336;"><i class="fas fa-trash"></i></button>
                 </div>
@@ -1099,12 +1138,12 @@ function renderAgendas(filtered = null) {
                     <a href="${link}" target="_blank" style="color: #0288d1; text-decoration: none;">${link}</a>
                 </div>
 
-                <!-- Vigência, Atendimento & Senha -->
+                <!-- Vigﾃｪncia, Atendimento & Senha -->
                 <div style="background: #fff3e0; padding: 12px; border-radius: 8px; border: 1px solid #ffe0b2; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px;">
                     <div style="display: flex; justify-content: space-between;">
                         <div>
-                            <strong style="color: #e65100; font-size: 11px; text-transform: uppercase;">Vigência</strong><br>
-                            <span style="font-size: 13px;">${dataInicio} até ${dataFim}</span>
+                            <strong style="color: #e65100; font-size: 11px; text-transform: uppercase;">Vigﾃｪncia</strong><br>
+                            <span style="font-size: 13px;">${dataInicio} atﾃｩ ${dataFim}</span>
                         </div>
                         <div style="text-align: right;">
                             <strong style="color: #e65100; font-size: 11px; text-transform: uppercase;">Senha</strong><br>
@@ -1113,17 +1152,17 @@ function renderAgendas(filtered = null) {
                     </div>
                     <div style="border-top: 1px dashed #ffd180; padding-top: 5px;">
                         <strong style="color: #e65100; font-size: 11px; text-transform: uppercase;">Atendimento</strong><br>
-                        <span style="font-size: 13px;">${formatSheetDate(agenda.atendimentoInicial)} até ${formatSheetDate(agenda.atendimentoFinal)}</span>
+                        <span style="font-size: 13px;">${formatSheetDate(agenda.atendimentoInicial)} atﾃｩ ${formatSheetDate(agenda.atendimentoFinal)}</span>
                     </div>
                 </div>
 
                 <div class="info-group" style="margin-bottom: 10px;">
-                    <strong style="font-size: 12px; color: #666; text-transform: uppercase;">Endereço:</strong>
-                    <div style="font-size: 14px; color: #333;">${agenda.endereco || 'Não informado'}</div>
+                    <strong style="font-size: 12px; color: #666; text-transform: uppercase;">Endereﾃｧo:</strong>
+                    <div style="font-size: 14px; color: #333;">${agenda.endereco || 'Nﾃ｣o informado'}</div>
                 </div>
 
                 <div class="info-group" style="margin-bottom: 15px;">
-                    <strong style="font-size: 12px; color: #666; text-transform: uppercase;">Horário de Atendimento:</strong>
+                    <strong style="font-size: 12px; color: #666; text-transform: uppercase;">Horﾃ｡rio de Atendimento:</strong>
                     <div style="font-size: 13px; color: #444; margin-top: 5px; line-height: 1.6;">
                         ${horariosHtml}
                     </div>
@@ -1135,7 +1174,7 @@ function renderAgendas(filtered = null) {
                 </div>
 
                 <div class="info-group" style="margin-bottom: 15px;">
-                    <strong style="font-size: 12px; color: #666; text-transform: uppercase;">Serviços:</strong>
+                    <strong style="font-size: 12px; color: #666; text-transform: uppercase;">Serviﾃｧos:</strong>
                     <div class="services-list" style="margin-top: 5px;">
                         ${(agenda.servicos || []).map(s => `<span class="service-tag">${s}</span>`).join('')}
                     </div>
@@ -1143,12 +1182,12 @@ function renderAgendas(filtered = null) {
 
                 <div style="border-top: 1px solid #eee; padding-top: 10px; margin-top: 10px;">
                     <div style="font-size: 13px; color: #666; margin-bottom: 5px;">
-                        <strong>Formulários:</strong><br>
-                        Número de Agendamentos Futuros: ${agendamentos.filter(a => a.agendaId == agenda.id).length}<br>
-                        Número de Horários Livres: ${calcularHorariosLivres(agenda, agendamentos.filter(a => a.agendaId == agenda.id).length)}<br>
+                        <strong>Formulﾃ｡rios:</strong><br>
+                        Nﾃｺmero de Agendamentos Futuros: ${agendamentos.filter(a => a.agendaId == agenda.id).length}<br>
+                        Nﾃｺmero de Horﾃ｡rios Livres: ${calcularHorariosLivres(agenda, agendamentos.filter(a => a.agendaId == agenda.id).length)}<br>
                     </div>
                     <div style="font-size: 13px; color: #666;">
-                        <strong>Quantidade Máxima de Agendamentos por Horário:</strong><br>
+                        <strong>Quantidade Mﾃ｡xima de Agendamentos por Horﾃ｡rio:</strong><br>
                         ${agenda.maxAgendamentosHorario || 6}
                     </div>
                 </div>
@@ -1178,12 +1217,12 @@ function openModal(type) {
             </button>
         `;
     } else if (type === 'addUser') {
-        title.textContent = editingUsuarioId ? 'Editar Usuário' : 'Novo Usuário';
+        title.textContent = editingUsuarioId ? 'Editar Usuﾃ｡rio' : 'Novo Usuﾃ｡rio';
         body.innerHTML = getUsuarioForm();
         footerHtml = `
             <button class="btn btn-cancel" onclick="closeModal()">Cancelar</button>
             <button class="btn btn-primary" onclick="saveUsuario()">
-                <i class="fas fa-save"></i> ${editingUsuarioId ? 'Salvar Alterações' : 'Salvar Usuário'}
+                <i class="fas fa-save"></i> ${editingUsuarioId ? 'Salvar Alteraﾃｧﾃｵes' : 'Salvar Usuﾃ｡rio'}
             </button>
         `;
 
@@ -1203,11 +1242,11 @@ function openModal(type) {
         }
 
     } else if (type === 'servicos') {
-        title.textContent = 'Gerenciar Serviços e Duração';
+        title.textContent = 'Gerenciar Serviﾃｧos e Duraﾃｧﾃ｣o';
         body.innerHTML = getServicosForm();
         footerHtml = `<button class="btn btn-secondary" onclick="closeModal()">Fechar</button>`;
     } else if (type === 'enderecos') {
-        title.textContent = 'Endereços de Atendimento';
+        title.textContent = 'Endereﾃｧos de Atendimento';
         body.innerHTML = getEnderecosForm();
         footerHtml = `<button class="btn btn-secondary" onclick="closeModal()">Fechar</button>`;
     }
@@ -1224,8 +1263,8 @@ function getAgendaForm() {
             <div class="form-group"><label>Slug</label><input class="form-control" id="formSlug" value="${agenda.slug || ''}"></div>
         </div>
         <div class="form-row">
-            <div class="form-group"><label>Vigência inicial</label><input type="date" class="form-control" id="formDataIni" value="${agenda.dataInicial || ''}"></div>
-            <div class="form-group"><label>Vigência Final</label><input type="date" class="form-control" id="formDataFim" value="${agenda.ultimaData || ''}"></div>
+            <div class="form-group"><label>Vigﾃｪncia inicial</label><input type="date" class="form-control" id="formDataIni" value="${agenda.dataInicial || ''}"></div>
+            <div class="form-group"><label>Vigﾃｪncia Final</label><input type="date" class="form-control" id="formDataFim" value="${agenda.ultimaData || ''}"></div>
         </div>
         <div class="form-row">
             <div class="form-group"><label>Data de atendimento inicial</label><input type="date" class="form-control" id="formAtendIni" value="${agenda.atendimentoInicial || ''}"></div>
@@ -1242,13 +1281,13 @@ function getAgendaForm() {
         </div>
         
         <div class="form-group">
-            <label>Máx. Agendamentos por Horário</label>
+            <label>Mﾃ｡x. Agendamentos por Horﾃ｡rio</label>
             <input type="number" class="form-control" id="formMaxAgendamentos" value="${agenda.maxAgendamentosHorario || 6}">
         </div>
         
         <div class="form-group">
-            <label>Endereço</label>
-            <input class="form-control" id="formEndereco" list="enderecosDataList" value="${agenda.endereco || ''}" placeholder="Pesquise ou digite o endereço...">
+            <label>Endereﾃｧo</label>
+            <input class="form-control" id="formEndereco" list="enderecosDataList" value="${agenda.endereco || ''}" placeholder="Pesquise ou digite o endereﾃｧo...">
             <datalist id="enderecosDataList">
                 ${enderecosDisponiveis.map(e => `<option value="${e}">`).join('')}
             </datalist>
@@ -1256,7 +1295,7 @@ function getAgendaForm() {
 
         <div class="horario-section" style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
             <div class="horario-title" style="margin-bottom: 20px; color: #333; font-size: 16px; display: flex; align-items: center; gap: 8px;">
-                <i class="far fa-clock"></i> Horários
+                <i class="far fa-clock"></i> Horﾃ｡rios
             </div>
             ${['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'].map(d => {
         let h = agenda.horarioAtendimento?.[d] || { ativo: false };
@@ -1272,8 +1311,8 @@ function getAgendaForm() {
         }
 
         const mapDias = {
-            'seg': 'Segunda', 'ter': 'Terça', 'qua': 'Quarta', 'qui': 'Quinta',
-            'sex': 'Sexta', 'sab': 'Sábado', 'dom': 'Domingo'
+            'seg': 'Segunda', 'ter': 'Terﾃｧa', 'qua': 'Quarta', 'qui': 'Quinta',
+            'sex': 'Sexta', 'sab': 'Sﾃ｡bado', 'dom': 'Domingo'
         };
 
         return `
@@ -1304,7 +1343,7 @@ function getAgendaForm() {
         </div>
 
          <div class="form-group" style="margin-top: 20px;">
-            <label>Serviços desta Agenda</label>
+            <label>Serviﾃｧos desta Agenda</label>
             <div class="services-selection">
                 ${servicosDisponiveis
             .sort((a, b) => (parseInt(a.nome) || 999999) - (parseInt(b.nome) || 999999))
@@ -1433,7 +1472,7 @@ function getServicosForm() {
     return `
         <div class="form-row" style="align-items: flex-start;">
             <div class="form-group" style="flex: 2;">
-                <input id="newServName" class="form-control" placeholder="Nome do Serviço" style="margin-top: 0;">
+                <input id="newServName" class="form-control" placeholder="Nome do Serviﾃｧo" style="margin-top: 0;">
             </div>
             <div class="form-group" style="flex: 1; display: flex; flex-direction: column; gap: 5px;">
                 <select id="newServDur" class="form-control" style="margin-top: 0;">
@@ -1474,7 +1513,7 @@ async function addServico() {
     }
 }
 async function delServico(i) {
-    if (confirm('Deseja excluir este serviço?')) {
+    if (confirm('Deseja excluir este serviﾃｧo?')) {
         const tempList = servicosDisponiveis.filter((_, index) => index !== i);
         const suceso = await salvarDadosCloud('saveServicos', tempList);
         if (suceso) {
@@ -1491,37 +1530,37 @@ function getEnderecosForm() {
         <div class="address-entry-form" style="background: #f8f9fa; padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #eee;">
             <div class="form-row" style="grid-template-columns: 2fr 1fr;">
                  <div class="form-group">
-                    <label style="font-size: 11px; text-transform: uppercase; color: #777;">País:</label>
+                    <label style="font-size: 11px; text-transform: uppercase; color: #777;">Paﾃｭs:</label>
                     <select id="endPais" class="form-control"><option>Brasil</option></select>
                  </div>
                  <div class="form-group">
                     <label style="font-size: 11px; text-transform: uppercase; color: #777;">Estado:</label>
                     <select id="endEstado" class="form-control">
-                        <option value="PR">Paraná</option>
+                        <option value="PR">Paranﾃ｡</option>
                         <option value="AC">Acre</option>
                         <option value="AL">Alagoas</option>
-                        <option value="AP">Amapá</option>
+                        <option value="AP">Amapﾃ｡</option>
                         <option value="AM">Amazonas</option>
                         <option value="BA">Bahia</option>
-                        <option value="CE">Ceará</option>
+                        <option value="CE">Cearﾃ｡</option>
                         <option value="DF">Distrito Federal</option>
-                        <option value="ES">Espírito Santo</option>
-                        <option value="GO">Goiás</option>
-                        <option value="MA">Maranhão</option>
+                        <option value="ES">Espﾃｭrito Santo</option>
+                        <option value="GO">Goiﾃ｡s</option>
+                        <option value="MA">Maranhﾃ｣o</option>
                         <option value="MT">Mato Grosso</option>
                         <option value="MS">Mato Grosso do Sul</option>
                         <option value="MG">Minas Gerais</option>
-                        <option value="PA">Pará</option>
-                        <option value="PB">Paraíba</option>
+                        <option value="PA">Parﾃ｡</option>
+                        <option value="PB">Paraﾃｭba</option>
                         <option value="PE">Pernambuco</option>
-                        <option value="PI">Piauí</option>
+                        <option value="PI">Piauﾃｭ</option>
                         <option value="RJ">Rio de Janeiro</option>
                         <option value="RN">Rio Grande do Norte</option>
                         <option value="RS">Rio Grande do Sul</option>
-                        <option value="RO">Rondônia</option>
+                        <option value="RO">Rondﾃｴnia</option>
                         <option value="RR">Roraima</option>
                         <option value="SC">Santa Catarina</option>
-                        <option value="SP">São Paulo</option>
+                        <option value="SP">Sﾃ｣o Paulo</option>
                         <option value="SE">Sergipe</option>
                         <option value="TO">Tocantins</option>
                     </select>
@@ -1530,8 +1569,8 @@ function getEnderecosForm() {
 
             <div class="form-row" style="grid-template-columns: 2fr 1fr;">
                  <div class="form-group">
-                    <label style="font-size: 11px; text-transform: uppercase; color: #777;">Município:</label>
-                    <input id="endMunicipio" class="form-control" placeholder="Ex: Rolândia">
+                    <label style="font-size: 11px; text-transform: uppercase; color: #777;">Municﾃｭpio:</label>
+                    <input id="endMunicipio" class="form-control" placeholder="Ex: Rolﾃ｢ndia">
                  </div>
                  <div class="form-group">
                     <label style="font-size: 11px; text-transform: uppercase; color: #777;">CEP:</label>
@@ -1545,7 +1584,7 @@ function getEnderecosForm() {
                     <input id="endLogradouro" class="form-control" placeholder="Ex: Avenida das Palmeiras">
                  </div>
                  <div class="form-group">
-                    <label style="font-size: 11px; text-transform: uppercase; color: #777;">Número:</label>
+                    <label style="font-size: 11px; text-transform: uppercase; color: #777;">Nﾃｺmero:</label>
                     <input id="endNumero" class="form-control" placeholder="300">
                  </div>
             </div>
@@ -1553,7 +1592,7 @@ function getEnderecosForm() {
             <div class="form-row">
                  <div class="form-group">
                     <label style="font-size: 11px; text-transform: uppercase; color: #777;">Complemento:</label>
-                    <input id="endComplemento" class="form-control" placeholder="Ex: Ginásio de Esportes">
+                    <input id="endComplemento" class="form-control" placeholder="Ex: Ginﾃ｡sio de Esportes">
                  </div>
                  <div class="form-group">
                     <label style="font-size: 11px; text-transform: uppercase; color: #777;">Bairro:</label>
@@ -1568,12 +1607,12 @@ function getEnderecosForm() {
 
             <div style="display: flex; gap: 10px;">
                 <button class="btn btn-primary" onclick="addEndereco()" style="flex: 1; justify-content: center;">
-                    <i class="fas fa-save"></i> SALVAR ENDEREÇO
+                    <i class="fas fa-save"></i> SALVAR ENDEREﾃ⑯
                 </button>
             </div>
         </div>
 
-        <h3 style="font-size: 16px; margin-bottom: 15px; color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px;">Endereços Cadastrados</h3>
+        <h3 style="font-size: 16px; margin-bottom: 15px; color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px;">Endereﾃｧos Cadastrados</h3>
         <div style="display: flex; flex-direction: column; gap: 10px; max-height: 250px; overflow-y: auto; padding-right: 5px;">
             ${enderecosDisponiveis.map((end, i) => `
                 <div style="background: white; padding: 12px 15px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #eee; border-left: 4px solid #00bfa5;">
@@ -1586,7 +1625,7 @@ function getEnderecosForm() {
                     </button>
                 </div>
             `).join('')}
-            ${enderecosDisponiveis.length === 0 ? '<p style="text-align: center; color: #999; font-style: italic;">Nenhum endereço cadastrado.</p>' : ''}
+            ${enderecosDisponiveis.length === 0 ? '<p style="text-align: center; color: #999; font-style: italic;">Nenhum endereﾃｧo cadastrado.</p>' : ''}
         </div>
     `;
 }
@@ -1601,12 +1640,12 @@ async function addEndereco() {
     const complemento = document.getElementById('endComplemento').value.trim();
 
     if (!logradouro || !municipio) {
-        return showToast('Logradouro e Município são obrigatórios', 'error');
+        return showToast('Logradouro e Municﾃｭpio sﾃ｣o obrigatﾃｳrios', 'error');
     }
 
-    // Formatar como string completa: Logradouro, nº Numero - Bairro, Cidade/UF, CEP
+    // Formatar como string completa: Logradouro, nﾂｺ Numero - Bairro, Cidade/UF, CEP
     let endFull = `${logradouro}`;
-    if (numero) endFull += `, nº ${numero}`;
+    if (numero) endFull += `, nﾂｺ ${numero}`;
     if (complemento) endFull += ` (${complemento})`;
     if (bairro) endFull += ` - ${bairro}`;
     if (municipio) endFull += `, ${municipio}`;
@@ -1618,12 +1657,12 @@ async function addEndereco() {
     if (suceso) {
         enderecosDisponiveis = tempList;
         openModal('enderecos');
-        showToast('Endereço cadastrado com sucesso!');
+        showToast('Endereﾃｧo cadastrado com sucesso!');
     }
 }
 
 async function delEndereco(index) {
-    if (confirm('Deseja excluir este endereço?')) {
+    if (confirm('Deseja excluir este endereﾃｧo?')) {
         const tempList = enderecosDisponiveis.filter((_, i) => i !== index);
         const suceso = await salvarDadosCloud('saveEnderecos', tempList);
         if (suceso) {
@@ -1633,9 +1672,9 @@ async function delEndereco(index) {
     }
 }
 
-// RELATÓRIOS PDF
-// RELATÓRIOS PDF
-// --- PERMISSÕES E USUÁRIOS ---
+// RELATﾃ迭IOS PDF
+// RELATﾃ迭IOS PDF
+// --- PERMISSﾃ髭S E USUﾃヽIOS ---
 function aplicarPermissoes() {
     if (!usuarioLogado) return;
 
@@ -1650,13 +1689,13 @@ function aplicarPermissoes() {
     }
 
     // Update Header Info
-    document.querySelector('.username').textContent = usuarioLogado.login || 'Usuário';
-    document.querySelector('.user-role').textContent = (usuarioLogado.perfil || 'Usuário').toUpperCase();
+    document.querySelector('.username').textContent = usuarioLogado.login || 'Usuﾃ｡rio';
+    document.querySelector('.user-role').textContent = (usuarioLogado.perfil || 'Usuﾃ｡rio').toUpperCase();
     document.querySelector('.avatar').textContent = (usuarioLogado.nome || 'U').charAt(0).toUpperCase();
 
     // Security: Redirect if User is in forbidden section
     const currentSection = document.querySelector('.nav-item.active span')?.textContent.toLowerCase();
-    if (!isAdmin && (currentSection === 'agendas' || currentSection === 'usuários')) {
+    if (!isAdmin && (currentSection === 'agendas' || currentSection === 'usuﾃ｡rios')) {
         showSection('relatorios');
     }
 
@@ -1701,25 +1740,25 @@ function editUsuario(id) {
 }
 
 async function excluirUsuario(id) {
-    if (id === 1) return showToast('O administrador padrão não pode ser excluído', 'error');
-    if (id === usuarioLogado.id) return showToast('Você não pode excluir a si mesmo', 'error');
+    if (id === 1) return showToast('O administrador padrﾃ｣o nﾃ｣o pode ser excluﾃｭdo', 'error');
+    if (id === usuarioLogado.id) return showToast('Vocﾃｪ nﾃ｣o pode excluir a si mesmo', 'error');
 
-    if (confirm('Deseja excluir este usuário permanentemente da nuvem?')) {
+    if (confirm('Deseja excluir este usuﾃ｡rio permanentemente da nuvem?')) {
         const userToDelete = usuarios.find(u => u.id === id);
         if (userToDelete) {
-            // Mostrar estado de carregamento se possível ou apenas aguardar
+            // Mostrar estado de carregamento se possﾃｭvel ou apenas aguardar
             const suceso = await salvarDadosCloud('deleteUsuario', { id: userToDelete.id });
             if (suceso) {
                 usuarios = usuarios.filter(u => u.id !== id);
                 renderUsuarios();
-                showToast('Usuário removido com sucesso');
+                showToast('Usuﾃ｡rio removido com sucesso');
             }
         }
     }
 }
 
 async function excluirAgenda(id) {
-    if (confirm('Deseja excluir esta agenda permanentemente da nuvem? TODOS OS AGENDAMENTOS vinculados também serão apagados!')) {
+    if (confirm('Deseja excluir esta agenda permanentemente da nuvem? TODOS OS AGENDAMENTOS vinculados tambﾃｩm serﾃ｣o apagados!')) {
         const agendaToDelete = agendas.find(a => a.id === id);
         if (agendaToDelete) {
             const loading = document.getElementById('loadingOverlay');
@@ -1731,7 +1770,7 @@ async function excluirAgenda(id) {
             // Encontrar todos os agendamentos desta agenda
             const agendamentosVinculados = agendamentos.filter(ag => ag.agendaId == id);
 
-            // Excluir cada agendamento sequencialmente para evitar falhas de concorrência na nuvem
+            // Excluir cada agendamento sequencialmente para evitar falhas de concorrﾃｪncia na nuvem
             for (let ag of agendamentosVinculados) {
                 await salvarDadosCloud('deleteAgendamento', { codigo: ag.codigo });
             }
@@ -1748,7 +1787,7 @@ async function excluirAgenda(id) {
                 agendas = agendas.filter(a => a.id !== id);
                 agendamentos = agendamentos.filter(ag => ag.agendaId != id); // Clear locally
 
-                // Evita que o cache carregue dados mortos na próxima piscada
+                // Evita que o cache carregue dados mortos na prﾃｳxima piscada
                 localStorage.removeItem('appDataCache');
                 localStorage.removeItem('appDataCacheTime');
 
@@ -1824,7 +1863,7 @@ function renderDashboard() {
     // Filter active agendas
     const activeAgendas = agendas.filter(a => a.status === 'active');
 
-    // Limpar gráficos antigos
+    // Limpar grﾃ｡ficos antigos
     dashboardCharts.forEach(chart => {
         if (chart) chart.destroy();
     });
@@ -1841,7 +1880,7 @@ function renderDashboard() {
         const reservados = agendamentos.filter(ag => ag.agendaId == agenda.id).length;
         const livres = calcularHorariosLivres(agenda, reservados);
 
-        // Criar card para o gráfico
+        // Criar card para o grﾃ｡fico
         const card = document.createElement('div');
         card.className = 'form-group dashboard-card';
         card.style.cssText = 'background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;';
@@ -1865,7 +1904,7 @@ function renderDashboard() {
         const chart = new Chart(canvas, {
             type: 'doughnut',
             data: {
-                labels: ['Número de Horários Livres', 'Agendamentos Reservados'],
+                labels: ['Nﾃｺmero de Horﾃ｡rios Livres', 'Agendamentos Reservados'],
                 datasets: [{
                     data: [livres, reservados],
                     backgroundColor: ['#00c2a8', '#4285f4'], // Laranja e Azul parecidos com o print
@@ -1897,7 +1936,7 @@ function renderDashboard() {
                         generateLabels: (chart) => {
                             const original = Chart.defaults.plugins.legend.labels.generateLabels(chart);
                             original.forEach((label, index) => {
-                                // Força a cor do texto igual a do background
+                                // Forﾃｧa a cor do texto igual a do background
                                 label.fontColor = index === 0 ? '#00c2a8' : '#4285f4';
                             });
                             return original;
@@ -1906,7 +1945,7 @@ function renderDashboard() {
                     tooltip: {
                         callbacks: {
                             label: function (context) {
-                                return ` ${context.label}: ${context.raw}`; // Espaço antes para parecer com a foto
+                                return ` ${context.label}: ${context.raw}`; // Espaﾃｧo antes para parecer com a foto
                             }
                         }
                     }
@@ -1982,7 +2021,7 @@ async function gerarRelatorioPDF() {
     const doc = new jsPDF();
 
     doc.setFontSize(18);
-    doc.text("Relatório de Agendamentos", 14, 20);
+    doc.text("Relatﾃｳrio de Agendamentos", 14, 20);
 
     doc.setFontSize(10);
     const now = new Date();
@@ -1990,11 +2029,11 @@ async function gerarRelatorioPDF() {
 
     // Period display
     if (dataIni || dataFim) {
-        const pIni = dataIni ? dataIni.split('-').reverse().join('/') : 'Início';
+        const pIni = dataIni ? dataIni.split('-').reverse().join('/') : 'Inﾃｭcio';
         const pFim = dataFim ? dataFim.split('-').reverse().join('/') : 'Fim';
         doc.setFontSize(11);
         doc.setFont(undefined, 'bold');
-        doc.text(`Período: ${pIni} até ${pFim}`, 14, 32);
+        doc.text(`Perﾃｭodo: ${pIni} atﾃｩ ${pFim}`, 14, 32);
         y = 40;
     } else {
         y = 35;
@@ -2044,7 +2083,7 @@ async function gerarRelatorioPDF() {
 
             doc.autoTable({
                 startY: y,
-                head: [['Data', 'Horário', 'Nome', 'Serviço', 'Telefone']],
+                head: [['Data', 'Horﾃ｡rio', 'Nome', 'Serviﾃｧo', 'Telefone']],
                 body: tableData,
                 theme: 'grid',
                 headStyles: {
@@ -2066,7 +2105,7 @@ async function gerarRelatorioPDF() {
     });
 
     doc.save("relatorio_agendamentos.pdf");
-    showToast('Relatório gerado com sucesso!');
+    showToast('Relatﾃｳrio gerado com sucesso!');
 }
 
 
@@ -2170,10 +2209,10 @@ function getUsuarioForm() {
         <div class="form-grid">
             <div class="form-group">
                 <label>Nome Completo</label>
-                <input type="text" id="userName" class="form-control" placeholder="Ex: João Silva">
+                <input type="text" id="userName" class="form-control" placeholder="Ex: Joﾃ｣o Silva">
             </div>
             <div class="form-group">
-                <label>Login / Usuário</label>
+                <label>Login / Usuﾃ｡rio</label>
                 <input type="text" id="userLogin" class="form-control" placeholder="Ex: joao.silva">
             </div>
             <div class="form-group">
@@ -2184,7 +2223,7 @@ function getUsuarioForm() {
                 <label>Perfil de Acesso</label>
                 <select id="userPerfil" class="form-control">
                     <option value="Administrador">Administrador (Acesso Total)</option>
-                    <option value="Usuário">Usuário (Apenas Relatórios)</option>
+                    <option value="Usuﾃ｡rio">Usuﾃ｡rio (Apenas Relatﾃｳrios)</option>
                 </select>
             </div>
             <div class="form-group">
@@ -2226,7 +2265,7 @@ async function saveUsuario() {
         renderUsuarios();
         closeModal();
         editingUsuarioId = null;
-        showToast('Usuário salvo com sucesso!');
+        showToast('Usuﾃ｡rio salvo com sucesso!');
     }
 }
 
@@ -2243,16 +2282,16 @@ function hideLoading() {
         overlay.style.display = 'none';
     }
 }
-// --- FUNÇÕES LEGAIS ---
+// --- FUNﾃ�髭S LEGAIS ---
 function abrirTermosDeUso() {
     const conteudo = `
         <div style="text-align: left; line-height: 1.6; color: #444;">
             <h3>Termos de Uso</h3>
-            <p><strong>1. Finalidade:</strong> Os dados coletados destinam-se exclusivamente ao agendamento de atendimentos no Programa Justiça no Bairro.</p>
-            <p><strong>2. Coleta de Dados:</strong> Coletamos nome, CPF, e-mail e telefone para identificar o cidadão e facilitar a comunicação sobre o agendamento.</p>
-            <p><strong>3. Armazenamento:</strong> Os dados são armazenados de forma segura em infraestrutura de nuvem (Google Cloud) e acessados apenas por pessoal autorizado.</p>
-            <p><strong>4. Responsabilidade:</strong> O usuário é responsável pela veracidade dos dados informados.</p>
-            <p><strong>5. Cancelamento:</strong> O usuário pode solicitar a exclusão de seus dados após o atendimento, conforme a LGPD.</p>
+            <p><strong>1. Finalidade:</strong> Os dados coletados destinam-se exclusivamente ao agendamento de atendimentos no Programa Justiﾃｧa no Bairro.</p>
+            <p><strong>2. Coleta de Dados:</strong> Coletamos nome, CPF, e-mail e telefone para identificar o cidadﾃ｣o e facilitar a comunicaﾃｧﾃ｣o sobre o agendamento.</p>
+            <p><strong>3. Armazenamento:</strong> Os dados sﾃ｣o armazenados de forma segura em infraestrutura de nuvem (Google Cloud) e acessados apenas por pessoal autorizado.</p>
+            <p><strong>4. Responsabilidade:</strong> O usuﾃ｡rio ﾃｩ responsﾃ｡vel pela veracidade dos dados informados.</p>
+            <p><strong>5. Cancelamento:</strong> O usuﾃ｡rio pode solicitar a exclusﾃ｣o de seus dados apﾃｳs o atendimento, conforme a LGPD.</p>
         </div>
     `;
     mostrarModalGeral("Termos de Uso", conteudo);
@@ -2261,17 +2300,17 @@ function abrirTermosDeUso() {
 function abrirPoliticaPrivacidade() {
     const conteudo = `
         <div style="text-align: left; line-height: 1.6; color: #444;">
-            <h3>Política de Privacidade</h3>
-            <p>Esta política descreve como tratamos suas informações pessoais:</p>
+            <h3>Polﾃｭtica de Privacidade</h3>
+            <p>Esta polﾃｭtica descreve como tratamos suas informaﾃｧﾃｵes pessoais:</p>
             <ul>
-                <li><strong>Privacidade:</strong> Não compartilhamos seus dados com terceiros para fins comerciais.</li>
-                <li><strong>Uso:</strong> Seus dados são usados apenas para a gestão das agendas e estatísticas internas do programa.</li>
-                <li><strong>Segurança:</strong> Utilizamos protocolos de segurança para proteger suas informações contra acesso não autorizado.</li>
-                <li><strong>Direitos:</strong> Você tem o direito de consultar, corrigir ou excluir seus dados a qualquer momento.</li>
+                <li><strong>Privacidade:</strong> Nﾃ｣o compartilhamos seus dados com terceiros para fins comerciais.</li>
+                <li><strong>Uso:</strong> Seus dados sﾃ｣o usados apenas para a gestﾃ｣o das agendas e estatﾃｭsticas internas do programa.</li>
+                <li><strong>Seguranﾃｧa:</strong> Utilizamos protocolos de seguranﾃｧa para proteger suas informaﾃｧﾃｵes contra acesso nﾃ｣o autorizado.</li>
+                <li><strong>Direitos:</strong> Vocﾃｪ tem o direito de consultar, corrigir ou excluir seus dados a qualquer momento.</li>
             </ul>
         </div>
     `;
-    mostrarModalGeral("Política de Privacidade", conteudo);
+    mostrarModalGeral("Polﾃｭtica de Privacidade", conteudo);
 }
 
 function mostrarModalGeral(titulo, html) {
@@ -2287,7 +2326,7 @@ function mostrarModalGeral(titulo, html) {
         overlay.classList.add("active");
         overlay.style.display = ""; // Limpa display inline
         
-        // Esconde bot�es do footer (Salvar/Cancelar) em modais informativos
+        // Esconde bot�s do footer (Salvar/Cancelar) em modais informativos
         const footer = overlay.querySelector(".modal-footer");
         if (footer) footer.style.display = "none";
     }
