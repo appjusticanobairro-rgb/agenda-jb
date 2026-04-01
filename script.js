@@ -689,7 +689,7 @@ function voltarStep() {
     document.getElementById('btnConfirmar').style.display = 'none';
 }
 
-function confirmarAgendamento() {
+async function confirmarAgendamento() {
     const nome = document.getElementById('publicNome').value.trim();
     const telefone = document.getElementById('publicTelefone').value.trim();
     const termos = document.getElementById('termosAceite').checked;
@@ -732,12 +732,11 @@ function confirmarAgendamento() {
         if (idx !== -1) agendamentos[idx] = { ...agendamentoData };
     }
 
-    // Mostra a confirmação IMEDIATAMENTE e salva em background
+    // Aguarda salvar na nuvem antes de mostrar o recibo
+    await salvarDadosCloud('saveAgendamento', agendamentoData);
+
     hideLoading();
     mostrarConfirmacao();
-
-    // Salva na nuvem em background (sem bloquear a tela)
-    salvarDadosCloud('saveAgendamento', agendamentoData);
 }
 
 function mostrarConfirmacao() {
@@ -803,18 +802,21 @@ async function cancelarAgendamento() {
             // Guarda código antes de limpar
             const codigoParaDeletar = agendamentoData.codigo;
             
-            // Navega de volta sem recarregar a página
+            // Aguarda excluir na nuvem antes de navegar
+            const sucesso = await salvarDadosCloud('deleteAgendamento', { codigo: codigoParaDeletar });
+            
             hideLoading();
-            agendamentoData = {};
-            showToast('Agendamento cancelado com sucesso.');
-            
-            // Volta pra tela de agendamento
-            document.getElementById('confirmacaoPage').classList.remove('active');
-            document.getElementById('agendamentoPage').classList.add('active');
-            switchPublicSection('novo');
-            
-            // Exclui na nuvem em background
-            salvarDadosCloud('deleteAgendamento', { codigo: codigoParaDeletar });
+            if (sucesso) {
+                agendamentoData = {};
+                showToast('Agendamento cancelado com sucesso.');
+                
+                // Volta pra tela de agendamento
+                document.getElementById('confirmacaoPage').classList.remove('active');
+                document.getElementById('agendamentoPage').classList.add('active');
+                switchPublicSection('novo');
+            } else {
+                showToast('Erro ao cancelar. Tente novamente.', 'error');
+            }
         } else {
             // Se ainda não salvou na nuvem, apenas reseta
             agendamentoData = {};
