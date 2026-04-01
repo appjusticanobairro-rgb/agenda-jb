@@ -36,22 +36,26 @@ let currentPublicAgenda = null; // Agenda ativa no momento (público)
 // Carregar dados da Nuvem (Google Sheets)
 async function carregarDados(isBackground = false) {
     const loader = document.getElementById('loadingOverlay');
-    if (!isBackground && loader) loader.style.display = 'flex';
+    const cachedStr = localStorage.getItem('appDataCache');
+    const cacheTime = localStorage.getItem('appDataCacheTime');
+    const now = Date.now();
+    const CACHE_DURATION = 30 * 60 * 1000; // 30 minutos
+
+    const cacheValido = cachedStr && cacheTime && (now - parseInt(cacheTime) < CACHE_DURATION);
+
+    // Só mostra o loader se NÃO estiver em background e NÃO tiver cache válido
+    if (!isBackground && !cacheValido && loader) {
+        loader.style.display = 'flex';
+    }
     
     if (!isBackground) console.log("Solicitando dados da nuvem...");
     try {
-        const cachedStr = localStorage.getItem('appDataCache');
-        const cacheTime = localStorage.getItem('appDataCacheTime');
-        const now = Date.now();
-        const CACHE_DURATION = 15 * 60 * 1000; // 15 minutos
-
-        if (!isBackground && cachedStr && cacheTime && (now - parseInt(cacheTime) < CACHE_DURATION)) {
+        if (!isBackground && cacheValido) {
             console.log("Usando cache local para carregamento rápido.");
             try {
                 const data = JSON.parse(cachedStr);
                 processarDadosApp(data);
-                if (loader) loader.style.display = 'none';
-                carregarDados(true); // Fetch in background to ensure freshness
+                carregarDados(true); // Atualiza em background sem incomodar
                 return true;
             } catch (e) {
                 console.error("Erro ao ler cache", e);
@@ -2239,3 +2243,61 @@ function hideLoading() {
         overlay.style.display = 'none';
     }
 }
+// --- FUNÇÕES LEGAIS ---
+function abrirTermosDeUso() {
+    const conteudo = `
+        <div style="text-align: left; line-height: 1.6; color: #444;">
+            <h3>Termos de Uso</h3>
+            <p><strong>1. Finalidade:</strong> Os dados coletados destinam-se exclusivamente ao agendamento de atendimentos no Programa Justiça no Bairro.</p>
+            <p><strong>2. Coleta de Dados:</strong> Coletamos nome, CPF, e-mail e telefone para identificar o cidadão e facilitar a comunicação sobre o agendamento.</p>
+            <p><strong>3. Armazenamento:</strong> Os dados são armazenados de forma segura em infraestrutura de nuvem (Google Cloud) e acessados apenas por pessoal autorizado.</p>
+            <p><strong>4. Responsabilidade:</strong> O usuário é responsável pela veracidade dos dados informados.</p>
+            <p><strong>5. Cancelamento:</strong> O usuário pode solicitar a exclusão de seus dados após o atendimento, conforme a LGPD.</p>
+        </div>
+    `;
+    mostrarModalGeral("Termos de Uso", conteudo);
+}
+
+function abrirPoliticaPrivacidade() {
+    const conteudo = `
+        <div style="text-align: left; line-height: 1.6; color: #444;">
+            <h3>Política de Privacidade</h3>
+            <p>Esta política descreve como tratamos suas informações pessoais:</p>
+            <ul>
+                <li><strong>Privacidade:</strong> Não compartilhamos seus dados com terceiros para fins comerciais.</li>
+                <li><strong>Uso:</strong> Seus dados são usados apenas para a gestão das agendas e estatísticas internas do programa.</li>
+                <li><strong>Segurança:</strong> Utilizamos protocolos de segurança para proteger suas informações contra acesso não autorizado.</li>
+                <li><strong>Direitos:</strong> Você tem o direito de consultar, corrigir ou excluir seus dados a qualquer momento.</li>
+            </ul>
+        </div>
+    `;
+    mostrarModalGeral("Política de Privacidade", conteudo);
+}
+
+function mostrarModalGeral(titulo, html) {
+    const overlay = document.getElementById('modalOverlay');
+    const title = document.getElementById('modalTitle');
+    const body = document.getElementById('modalBody');
+    
+    if (overlay && title && body) {
+        title.innerText = titulo;
+        body.innerHTML = html;
+        overlay.style.display = 'flex';
+        
+        // Esconde botões do footer se for apenas informativo
+        const footer = overlay.querySelector('.modal-footer');
+        if (footer) footer.style.display = 'none';
+    }
+}
+
+// Sobrescrever closeModal para garantir que o footer volte ao normal
+const originalCloseModal = window.closeModal;
+window.closeModal = function() {
+    const footer = document.querySelector('.modal-overlay .modal-footer');
+    if (footer) footer.style.display = 'flex';
+    if (typeof originalCloseModal === 'function') originalCloseModal();
+    else {
+        const overlay = document.getElementById('modalOverlay');
+        if (overlay) overlay.style.display = 'none';
+    }
+};
