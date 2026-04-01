@@ -2335,6 +2335,8 @@ function mostrarModalGeral(titulo, html) {
         // Esconde bot�s do footer (Salvar/Cancelar) em modais informativos
         const footer = overlay.querySelector(".modal-footer");
         if (footer) footer.style.display = "none";
+    }
+}
 
 // Sobrescrever closeModal para garantir que o footer volte ao normal
 const originalCloseModal = window.closeModal;
