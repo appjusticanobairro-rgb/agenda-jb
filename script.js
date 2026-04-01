@@ -827,9 +827,9 @@ function resetFormularioAgendamento() {
     // Reset UI stages
     document.querySelectorAll('.app-page').forEach(p => p.classList.remove('active'));
     
-    // Se a agenda atual possui senha, volta para a tela de login; caso contrário, vai para o agendamento direto
-    if (typeof currentPublicAgenda !== 'undefined' && currentPublicAgenda && currentPublicAgenda.senha) {
-        showLogin();
+    // Volta sempre para a página de agendamento, o mostrarPaginaAgendamento cuida de mostrar a senha se necessário
+    if (typeof currentPublicAgenda !== 'undefined' && currentPublicAgenda) {
+        mostrarPaginaAgendamento(currentPublicAgenda);
     } else {
         document.getElementById('agendamentoPage').classList.add('active');
     }
