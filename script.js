@@ -429,6 +429,9 @@ function mostrarPaginaAgendamento(agenda) {
             }
         }
 
+        // Garante que o ícone do topo esteja no estado inicial correto
+        switchPublicSection('novo');
+
         // 5. Carregar dados dependentes
         carregarServicosPublic(agenda);
         gerarDiasDisponiveis(agenda);
@@ -813,13 +816,13 @@ function switchPublicSection(section) {
     const secPesquisa = document.getElementById('pesquisaAgendamentoSection');
 
     if (section === 'novo') {
-        if (navNovo) navNovo.classList.add('active');
-        if (navPesquisa) navPesquisa.classList.remove('active');
+        if (navNovo) navNovo.classList.add('active-teal');
+        if (navPesquisa) navPesquisa.classList.remove('active-teal');
         if (secNovo) secNovo.style.display = 'block';
         if (secPesquisa) secPesquisa.style.display = 'none';
     } else if (section === 'pesquisa') {
-        if (navNovo) navNovo.classList.remove('active');
-        if (navPesquisa) navPesquisa.classList.add('active');
+        if (navNovo) navNovo.classList.remove('active-teal');
+        if (navPesquisa) navPesquisa.classList.add('active-teal');
         if (secNovo) secNovo.style.display = 'none';
         if (secPesquisa) secPesquisa.style.display = 'block';
     }
