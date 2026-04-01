@@ -35,18 +35,22 @@ let currentPublicAgenda = null; // Agenda ativa no momento (público)
 
 // Carregar dados da Nuvem (Google Sheets)
 async function carregarDados(isBackground = false) {
+    const loader = document.getElementById('loadingOverlay');
+    if (!isBackground && loader) loader.style.display = 'flex';
+    
     if (!isBackground) console.log("Solicitando dados da nuvem...");
     try {
         const cachedStr = localStorage.getItem('appDataCache');
         const cacheTime = localStorage.getItem('appDataCacheTime');
         const now = Date.now();
-        const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+        const CACHE_DURATION = 15 * 60 * 1000; // 15 minutos
 
         if (!isBackground && cachedStr && cacheTime && (now - parseInt(cacheTime) < CACHE_DURATION)) {
             console.log("Usando cache local para carregamento rápido.");
             try {
                 const data = JSON.parse(cachedStr);
                 processarDadosApp(data);
+                if (loader) loader.style.display = 'none';
                 carregarDados(true); // Fetch in background to ensure freshness
                 return true;
             } catch (e) {
@@ -91,10 +95,12 @@ async function carregarDados(isBackground = false) {
 
         // Sessão do usuário local
         usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado')) || null;
+        if (!isBackground && loader) loader.style.display = 'none';
         return true;
 
     } catch (error) {
         console.error("Erro ao carregar dados da nuvem:", error);
+        if (loader) loader.style.display = 'none';
         if (!isBackground) showToast("Erro ao conectar com o banco de dados. Verifique sua conexão.", "error");
         return false;
     }
@@ -154,13 +160,18 @@ async function salvarDadosCloud(action, data) {
 }
 
 document.addEventListener('DOMContentLoaded', async function () {
-    // 1. Carregar dados da nuvem (essencial para verificar slugs)
+    const hash = window.location.hash;
+    
+    // Se NÃO for rota pública (sem hash), podemos mostrar o login/admin logo (usando cache se existir)
+    if (!hash || hash === "" || hash === "#" || hash === "#/") {
+        verificarRota();
+    }
+
+    // Carregar dados da nuvem
     await carregarDados();
 
-    // 2. Sincronizar sessão do usuário
+    // Sincronizar sessão e verificar rota final (importante para slugs que dependem de dados)
     usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado')) || null;
-
-    // 3. Verificar Rota ANTES de decidir mostrar o login
     verificarRota();
 
     // Listener para o Enter na tela de login
