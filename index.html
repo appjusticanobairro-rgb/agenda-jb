@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
@@ -499,23 +499,20 @@
         </div>
 
         <!-- Página de Confirmação -->
-        <div id="confirmacaoPage" class="public-page">
-            <div class="recibo-wrapper">
-                <!-- Botões de Ação no Topo -->
-                <div class="recibo-actions">
-                    <button id="btnReciboNovo" class="btn-recibo-blue" onclick="novoAgendamento()">
-                        <i class="fas fa-plus"></i> Novo Agendamento
-                    </button>
-                    <button id="btnReciboEditar" class="btn-recibo-outline" onclick="editarAgendamento()">
-                        <i class="fas fa-edit"></i> Editar Agendamento
-                    </button>
-                    <button id="btnReciboCancelar" class="btn-recibo-cancel" onclick="cancelarAgendamento()">
-                        <i class="fas fa-times-circle"></i> Cancelar Agendamento
-                    </button>
-                    <button id="btnReciboImprimir" class="btn-recibo-print" onclick="imprimirRecibo()">
-                        <i class="fas fa-print"></i> Imprimir Recibo
-                    </button>
+                <div id="confirmacaoPage" class="public-page">
+            <header class="public-header-recibo">
+                <div class="header-logo">
+                    <img src="logo_jb.png" alt="JustiÃ§a no Bairro">
                 </div>
+                
+            </header>
+                        <div class="recibo-wrapper">
+                <div class="agenda-title-card">
+                    <h1 id="confirmAgendaTitle">PEDIDO DE AGENDAMENTO</h1>
+                    <p>Sistema de Agendamento Online</p>
+                </div>
+                <!-- Botões de Ação no Topo -->
+                
 
                 <!-- Card Principal do Recibo -->
                 <div class="recibo-card">

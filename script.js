@@ -1,4 +1,4 @@
-const API_URL = 'https://script.google.com/macros/s/AKfycbzCecQK6mQfT5VITQMiyGU3qJkhWjr-8wdItrLJhyI_eUW9xRxwpdBhDWAlOK3ib26Jrg/exec';
+﻿const API_URL = 'https://script.google.com/macros/s/AKfycbzCecQK6mQfT5VITQMiyGU3qJkhWjr-8wdItrLJhyI_eUW9xRxwpdBhDWAlOK3ib26Jrg/exec';
 
 // Data Store
 let agendas = [];
@@ -44,7 +44,7 @@ async function carregarDados(isBackground = false) {
     const cacheValido = cachedStr && cacheTime && (now - parseInt(cacheTime) < CACHE_DURATION);
     const isPublicPage = window.location.hash && window.location.hash.length > 2;
     
-    // Só mostra o loader se Nﾃグ estiver em background, Nﾃグ tiver cache válido, e Nﾃグ for página pública
+    // Só mostra o loader se NÃO estiver em background, NÃO tiver cache válido, e NÃO for página pública
     if (!isBackground && !cacheValido && !isPublicPage && loader) {
         loader.style.display = 'flex';
     }
@@ -128,7 +128,7 @@ function processarDadosApp(data) {
 
     // Servicos e Endereços: usar defaults se vazios
     servicosDisponiveis = (data.servicos && data.servicos.length > 0) ? data.servicos : defaultServices;
-    enderecosDisponiveis = (data.enderecos && data.enderecos.length > 0) ? data.enderecos : ["Av. Pres. Kennedy, n.ﾂｺ 900, Bairro Centro, Telêmaco Borba"];
+    enderecosDisponiveis = (data.enderecos && data.enderecos.length > 0) ? data.enderecos : ["Av. Pres. Kennedy, n.º 900, Bairro Centro, Telêmaco Borba"];
 
     console.log("Dados processados com sucesso.");
 }
@@ -167,7 +167,7 @@ async function salvarDadosCloud(action, data) {
 document.addEventListener('DOMContentLoaded', async function () {
     const hash = window.location.hash;
     
-    // Se Nﾃグ for rota pública (sem hash), podemos mostrar o login/admin logo (usando cache se existir)
+    // Se NÃO for rota pública (sem hash), podemos mostrar o login/admin logo (usando cache se existir)
     if (!hash || hash === "" || hash === "#" || hash === "#/") {
         verificarRota();
     }
@@ -253,14 +253,14 @@ function verificarRota() {
         }
     }
 
-    // 2. Fluxo Administrativo (apenas se Nﾃグ houver slug no link)
+    // 2. Fluxo Administrativo (apenas se NÃO houver slug no link)
     if (!usuarioLogado) {
         console.log("Nenhum slug detectado e usuário não logado. Mostrando login.");
         showLogin();
         return;
     }
 
-    // Usuário Logado - ﾃ〉ea Admin
+    // Usuário Logado - Área Admin
     console.log("Acessando área administrativa.");
     mostrarAdmin();
 }
@@ -471,7 +471,7 @@ function carregarServicos() {
 
 // window.addEventListener('hashchange', verificarRota); // Removido redundante
 
-// --- AGENDAMENTO Pﾃ咤LICO ---
+// --- AGENDAMENTO PÚBLICO ---
 
 function carregarServicosPublic(agenda) {
     const selectServico = document.getElementById('publicServicoSelect');
@@ -737,12 +737,22 @@ async function confirmarAgendamento() {
 
     hideLoading();
     mostrarConfirmacao();
+        const titleEl = document.getElementById('confirmAgendaTitle');
+        if (titleEl) titleEl.textContent = (agendamentoData.agendaNome || 'Pedido de Agendamento').toUpperCase();
+
+        // OCULTAR botÃµes de ediÃ§Ã£o/cancelamento quando vem da consulta por pesquisa
+        if (document.getElementById('btnReciboEditar')) document.getElementById('btnReciboEditar').style.display = 'none';
+        if (document.getElementById('btnReciboCancelar')) document.getElementById('btnReciboCancelar').style.display = 'none';
 }
 
 function mostrarConfirmacao() {
     document.body.classList.add('no-header');
     document.getElementById('agendamentoPage').classList.remove('active');
     document.getElementById('confirmacaoPage').classList.add('active');
+
+    // Atualiza o tÃ­tulo da Agenda no topo do recibo
+    const titleEl = document.getElementById('confirmAgendaTitle');
+    if (titleEl) titleEl.textContent = (agendamentoData.agendaNome || 'Pedido de Agendamento').toUpperCase();
 
     // Update confirmation fields
     document.getElementById('confirmCodigo').textContent = agendamentoData.codigo;
@@ -754,15 +764,19 @@ function mostrarConfirmacao() {
     document.getElementById('confirmTelefone').textContent = agendamentoData.telefone;
     document.getElementById('confirmEndereco').textContent = agendamentoData.endereco;
 
-    // Reset visibility of action buttons (default: all visible for new appointments)
+    // Reset visibility of action buttons (Exibe todos para novos agendamentos)
+    if (document.getElementById('btnReciboNovo')) document.getElementById('btnReciboNovo').style.display = 'flex';
     if (document.getElementById('btnReciboEditar')) document.getElementById('btnReciboEditar').style.display = 'flex';
     if (document.getElementById('btnReciboCancelar')) document.getElementById('btnReciboCancelar').style.display = 'flex';
+    if (document.getElementById('btnReciboImprimir')) document.getElementById('btnReciboImprimir').style.display = 'flex';
 }
 
 
 function novoAgendamento() {
     if (confirm('Deseja iniciar um novo agendamento?')) {
-        agendamentoData = {};
+        resetFormularioAgendamento();
+    }
+};
         const url = window.location.href.split('#')[0];
         const hash = window.location.hash;
         window.location.href = url + hash; // Mantém o hash da agenda
@@ -800,7 +814,6 @@ async function cancelarAgendamento() {
             if (idx !== -1) agendamentos.splice(idx, 1);
             
             // Guarda código antes de limpar
-            // Guarda código antes de limpar
             const codigoParaDeletar = agendamentoData.codigo;
             
             // Aguarda excluir na nuvem antes de navegar
@@ -810,56 +823,25 @@ async function cancelarAgendamento() {
             if (sucesso) {
                 agendamentoData = {};
                 showToast('Agendamento cancelado com sucesso.');
-                resetFormularioAgendamento();
+                
+                // Volta pra tela de agendamento
+                document.getElementById('confirmacaoPage').classList.remove('active');
+                document.getElementById('agendamentoPage').classList.add('active');
+                switchPublicSection('novo');
             } else {
                 showToast('Erro ao cancelar. Tente novamente.', 'error');
             }
         } else {
             // Se ainda não salvou na nuvem, apenas reseta
+            agendamentoData = {};
             hideLoading();
-            resetFormularioAgendamento();
+            document.getElementById('confirmacaoPage').classList.remove('active');
+            document.getElementById('agendamentoPage').classList.add('active');
+            switchPublicSection('novo');
         }
     }
 }
 
-
-function resetFormularioAgendamento() {
-    console.log('--- resetFormularioAgendamento ---');
-    agendamentoData = {};
-    currentStep = 1;
-    document.querySelectorAll('.public-page').forEach(p => p.classList.remove('active'));
-    const agendamentoPage = document.getElementById('agendamentoPage');
-    if (agendamentoPage) agendamentoPage.classList.add('active');
-    if (typeof currentPublicAgenda !== 'undefined' && currentPublicAgenda) {
-        mostrarPaginaAgendamento(currentPublicAgenda);
-    }
-    switchPublicSection('novo');
-    const s1 = document.getElementById('step1Content');
-    const s2 = document.getElementById('step2Content');
-    if (s1) s1.style.display = 'block';
-    if (s2) s2.style.display = 'none';
-    const i1 = document.getElementById('step1Indicator');
-    const i2 = document.getElementById('step2Indicator');
-    if (i1) i1.classList.add('active');
-    if (i2) i2.classList.remove('active');
-    const bV = document.getElementById('btnVoltar');
-    const bP = document.getElementById('btnProximo');
-    const bC = document.getElementById('btnConfirmar');
-    if (bV) bV.style.display = 'none';
-    if (bP) bP.style.display = 'flex';
-    if (bC) bC.style.display = 'none';
-    ['publicNome', 'publicTelefone', 'publicCPF', 'publicEmail', 'termosAceite'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) { if (el.type === 'checkbox') el.checked = false; else el.value = ''; }
-    });
-    document.querySelectorAll('.dia-btn.selected').forEach(b => b.classList.remove('selected'));
-    document.querySelectorAll('.horario-btn.selected').forEach(b => b.classList.remove('selected'));
-    const hG = document.getElementById('horariosGrid');
-    if (hG) hG.innerHTML = '';
-    const hH = document.getElementById('horarioHelp');
-    if (hH) hH.textContent = 'Selecione uma data para ver os hor�rios';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
 
 // --- NAVEGAÇÃO PÚBLICA & PESQUISA ---
 
@@ -937,7 +919,7 @@ function exibirAgendamentoConsultado(codigo) {
     if (found) {
         agendamentoData = { ...found };
         
-        // CORREﾃ�グ: Repopular nome da agenda e endereço caso venham vazios da nuvem
+        // CORREÇÃO: Repopular nome da agenda e endereço caso venham vazios da nuvem
         if (!agendamentoData.agendaNome || !agendamentoData.endereco) {
             const agenda = agendas.find(g => String(g.id) === String(found.agendaId));
             if (agenda) {
@@ -948,6 +930,12 @@ function exibirAgendamentoConsultado(codigo) {
         
         // Garantir que a tela de confirmação mostre os dados
         mostrarConfirmacao();
+        const titleEl = document.getElementById('confirmAgendaTitle');
+        if (titleEl) titleEl.textContent = (agendamentoData.agendaNome || 'Pedido de Agendamento').toUpperCase();
+
+        // OCULTAR botÃµes de ediÃ§Ã£o/cancelamento quando vem da consulta por pesquisa
+        if (document.getElementById('btnReciboEditar')) document.getElementById('btnReciboEditar').style.display = 'none';
+        if (document.getElementById('btnReciboCancelar')) document.getElementById('btnReciboCancelar').style.display = 'none';
         
         // OCULTAR botões de edição/cancelamento quando vem da consulta por pesquisa
         if (document.getElementById('btnReciboEditar')) document.getElementById('btnReciboEditar').style.display = 'none';
@@ -988,7 +976,7 @@ function debounce(func, wait) {
 let _bounceFilters = null;
 function debouncedApplyFilters() {
     if (!_bounceFilters) {
-        _bounceFilters = debounce(() => applyFilters(), 200);
+        _bounceFilters = debounce(() => applyFilters(), 300);
     }
     _bounceFilters();
 }
@@ -1427,19 +1415,17 @@ async function saveAgenda() {
         formularios: 0, agendamentosFuturos: 0, horariosLivres: 0 // Stats placeholders
     };
 
-    const suceso = await salvarDadosCloud('saveAgenda', newAgenda);
-    if (suceso) {
-        if (editingAgendaId) {
-            const idx = agendas.findIndex(a => a.id === editingAgendaId);
-            agendas[idx] = newAgenda;
-        } else {
-            agendas.push(newAgenda);
-        }
-        renderAgendas();
-        closeModal();
-        editingAgendaId = null;
-        showToast('Salvo com sucesso!');
+    if (editingAgendaId) {
+        const idx = agendas.findIndex(a => a.id === editingAgendaId);
+        agendas[idx] = newAgenda;
+    } else {
+        agendas.push(newAgenda);
     }
+    renderAgendas();
+    closeModal();
+    editingAgendaId = null;
+    showToast('Salvando em background...', 'info');
+    salvarDadosCloud('saveAgenda', newAgenda);
 }
 
 function gerarSlug() {
@@ -1505,21 +1491,19 @@ async function addServico() {
     const duracao = parseInt(document.getElementById('newServDur').value);
     if (nome) {
         const tempList = [...servicosDisponiveis, { nome, duracao }];
-        const suceso = await salvarDadosCloud('saveServicos', tempList);
-        if (suceso) {
-            servicosDisponiveis = tempList;
-            openModal('servicos'); // Refresh
-        }
+        servicosDisponiveis = tempList;
+        openModal('servicos'); // Refresh
+        showToast('Salvando em background...', 'info');
+        salvarDadosCloud('saveServicos', tempList);
     }
 }
 async function delServico(i) {
     if (confirm('Deseja excluir este serviço?')) {
         const tempList = servicosDisponiveis.filter((_, index) => index !== i);
-        const suceso = await salvarDadosCloud('saveServicos', tempList);
-        if (suceso) {
-            servicosDisponiveis = tempList;
-            openModal('servicos');
-        }
+        servicosDisponiveis = tempList;
+        openModal('servicos');
+        showToast('Excluindo em background...', 'info');
+        salvarDadosCloud('saveServicos', tempList);
     }
 }
 
@@ -1557,7 +1541,7 @@ function getEnderecosForm() {
                         <option value="RJ">Rio de Janeiro</option>
                         <option value="RN">Rio Grande do Norte</option>
                         <option value="RS">Rio Grande do Sul</option>
-                        <option value="RO">Rondﾃｴnia</option>
+                        <option value="RO">Rondônia</option>
                         <option value="RR">Roraima</option>
                         <option value="SC">Santa Catarina</option>
                         <option value="SP">São Paulo</option>
@@ -1607,7 +1591,7 @@ function getEnderecosForm() {
 
             <div style="display: flex; gap: 10px;">
                 <button class="btn btn-primary" onclick="addEndereco()" style="flex: 1; justify-content: center;">
-                    <i class="fas fa-save"></i> SALVAR ENDEREﾃ⑯
+                    <i class="fas fa-save"></i> SALVAR ENDEREÇO
                 </button>
             </div>
         </div>
@@ -1643,9 +1627,9 @@ async function addEndereco() {
         return showToast('Logradouro e Município são obrigatórios', 'error');
     }
 
-    // Formatar como string completa: Logradouro, nﾂｺ Numero - Bairro, Cidade/UF, CEP
+    // Formatar como string completa: Logradouro, nº Numero - Bairro, Cidade/UF, CEP
     let endFull = `${logradouro}`;
-    if (numero) endFull += `, nﾂｺ ${numero}`;
+    if (numero) endFull += `, nº ${numero}`;
     if (complemento) endFull += ` (${complemento})`;
     if (bairro) endFull += ` - ${bairro}`;
     if (municipio) endFull += `, ${municipio}`;
@@ -1664,17 +1648,16 @@ async function addEndereco() {
 async function delEndereco(index) {
     if (confirm('Deseja excluir este endereço?')) {
         const tempList = enderecosDisponiveis.filter((_, i) => i !== index);
-        const suceso = await salvarDadosCloud('saveEnderecos', tempList);
-        if (suceso) {
-            enderecosDisponiveis = tempList;
-            openModal('enderecos');
-        }
+        enderecosDisponiveis = tempList;
+        openModal('enderecos');
+        showToast('Excluindo em background...', 'info');
+        salvarDadosCloud('saveEnderecos', tempList);
     }
 }
 
-// RELATﾃ迭IOS PDF
-// RELATﾃ迭IOS PDF
-// --- PERMISSﾃ髭S E USUﾃヽIOS ---
+// RELATÓRIOS PDF
+// RELATÓRIOS PDF
+// --- PERMISSÕES E USUÁRIOS ---
 function aplicarPermissoes() {
     if (!usuarioLogado) return;
 
@@ -2194,7 +2177,7 @@ function showToast(msg, type = 'success') {
     t.className = `toast ${type}`;
     t.innerHTML = `<span>${msg}</span>`;
     document.getElementById('toastContainer').appendChild(t);
-    setTimeout(() => t.remove(), 2000);
+    setTimeout(() => t.remove(), 3000);
 }
 function imprimirRecibo() {
     const body = document.querySelector(".recibo-body");
@@ -2282,7 +2265,7 @@ function hideLoading() {
         overlay.style.display = 'none';
     }
 }
-// --- FUNﾃ�髭S LEGAIS ---
+// --- FUNÇÕES LEGAIS ---
 function abrirTermosDeUso() {
     const conteudo = `
         <div style="text-align: left; line-height: 1.6; color: #444;">
@@ -2314,39 +2297,29 @@ function abrirPoliticaPrivacidade() {
 }
 
 function mostrarModalGeral(titulo, html) {
-    const overlay = document.getElementById("modalOverlay");
-    const title = document.getElementById("modalTitle");
-    const body = document.getElementById("modalBody");
+    const overlay = document.getElementById('modalOverlay');
+    const title = document.getElementById('modalTitle');
+    const body = document.getElementById('modalBody');
     
     if (overlay && title && body) {
         title.innerText = titulo;
         body.innerHTML = html;
+        overlay.style.display = 'flex';
         
-        // Usa classe active para visibilidade (padronizado)
-        overlay.classList.add("active");
-        overlay.style.display = ""; // Limpa display inline
-        
-        // Esconde bot�s do footer (Salvar/Cancelar) em modais informativos
-        const footer = overlay.querySelector(".modal-footer");
-        if (footer) footer.style.display = "none";
+        // Esconde botões do footer se for apenas informativo
+        const footer = overlay.querySelector('.modal-footer');
+        if (footer) footer.style.display = 'none';
     }
 }
-
 
 // Sobrescrever closeModal para garantir que o footer volte ao normal
 const originalCloseModal = window.closeModal;
 window.closeModal = function() {
-    const footer = document.querySelector(".modal-overlay .modal-footer");
-    if (footer) footer.style.display = "flex"; // Restaura o footer para outros modais
-    
-    if (typeof originalCloseModal === "function") {
-        originalCloseModal();
-    }
-    
-    // Garante o fechamento resetando a classe active e o display inline
-    const overlay = document.getElementById("modalOverlay");
-    if (overlay) {
-        overlay.classList.remove("active");
-        overlay.style.display = "none";
+    const footer = document.querySelector('.modal-overlay .modal-footer');
+    if (footer) footer.style.display = 'flex';
+    if (typeof originalCloseModal === 'function') originalCloseModal();
+    else {
+        const overlay = document.getElementById('modalOverlay');
+        if (overlay) overlay.style.display = 'none';
     }
 };
