@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
@@ -502,9 +502,8 @@
                 <div id="confirmacaoPage" class="public-page">
             <header class="public-header-recibo">
                 <div class="header-logo">
-                    <img src="logo_jb.png" alt="JustiÃ§a no Bairro">
+                    <img src="logo_jb.png" alt="Justiça no Bairro">
                 </div>
-                
             </header>
                         <div class="recibo-wrapper">
                 <div class="agenda-title-card">
@@ -628,6 +627,22 @@
                     <div class="recibo-footer-text">
                         Dúvidas Secretaria do Programa Justiça no bairro (41) 3200-2801
                     </div>
+                </div>
+
+                <!-- Botões de Ação no Final -->
+                <div class="recibo-actions" style="margin-top: 30px;">
+                    <button id="btnReciboNovo" class="btn-outline-black" onclick="novoAgendamento()">
+                        Novo Agendamento
+                    </button>
+                    <button id="btnReciboEditar" class="btn-outline-black" onclick="editarAgendamento()">
+                        Editar Agendamento
+                    </button>
+                    <button id="btnReciboCancelar" class="btn-outline-black" onclick="cancelarAgendamento()">
+                        Cancelar Agendamento
+                    </button>
+                    <button id="btnReciboImprimir" class="btn-outline-black" onclick="window.print()">
+                        Imprimir Recibo
+                    </button>
                 </div>
             </div>
         </div>

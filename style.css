@@ -2168,9 +2168,27 @@ body.login-active {
     object-fit: contain;
 }
 
-.public-header-recibo .recibo-actions {
-    margin-bottom: 0;
-    gap: 12px;
+
+.btn-outline-black {
+    background: white;
+    border: 2px solid #000;
+    color: #000;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+.btn-outline-black:hover {
+    background: #000;
+    color: #fff;
 }
 
 #confirmacaoPage .recibo-wrapper {
