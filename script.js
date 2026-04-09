@@ -1,4 +1,4 @@
-﻿const API_URL = 'https://script.google.com/macros/s/AKfycbzCecQK6mQfT5VITQMiyGU3qJkhWjr-8wdItrLJhyI_eUW9xRxwpdBhDWAlOK3ib26Jrg/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbzCecQK6mQfT5VITQMiyGU3qJkhWjr-8wdItrLJhyI_eUW9xRxwpdBhDWAlOK3ib26Jrg/exec';
 
 // Data Store
 let agendas = [];
@@ -775,12 +775,6 @@ function mostrarConfirmacao() {
 function novoAgendamento() {
     if (confirm('Deseja iniciar um novo agendamento?')) {
         resetFormularioAgendamento();
-    }
-};
-        const url = window.location.href.split('#')[0];
-        const hash = window.location.hash;
-        window.location.href = url + hash; // Mantém o hash da agenda
-        window.location.reload();
     }
 }
 
