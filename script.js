@@ -737,12 +737,7 @@ async function confirmarAgendamento() {
 
     hideLoading();
     mostrarConfirmacao();
-        const titleEl = document.getElementById('confirmAgendaTitle');
-        if (titleEl) titleEl.textContent = (agendamentoData.agendaNome || 'Pedido de Agendamento').toUpperCase();
 
-        // OCULTAR botÃµes de ediÃ§Ã£o/cancelamento quando vem da consulta por pesquisa
-        if (document.getElementById('btnReciboEditar')) document.getElementById('btnReciboEditar').style.display = 'none';
-        if (document.getElementById('btnReciboCancelar')) document.getElementById('btnReciboCancelar').style.display = 'none';
 }
 
 function mostrarConfirmacao() {
@@ -926,14 +921,6 @@ function exibirAgendamentoConsultado(codigo) {
         mostrarConfirmacao();
         const titleEl = document.getElementById('confirmAgendaTitle');
         if (titleEl) titleEl.textContent = (agendamentoData.agendaNome || 'Pedido de Agendamento').toUpperCase();
-
-        // OCULTAR botÃµes de ediÃ§Ã£o/cancelamento quando vem da consulta por pesquisa
-        if (document.getElementById('btnReciboEditar')) document.getElementById('btnReciboEditar').style.display = 'none';
-        if (document.getElementById('btnReciboCancelar')) document.getElementById('btnReciboCancelar').style.display = 'none';
-        
-        // OCULTAR botões de edição/cancelamento quando vem da consulta por pesquisa
-        if (document.getElementById('btnReciboEditar')) document.getElementById('btnReciboEditar').style.display = 'none';
-        if (document.getElementById('btnReciboCancelar')) document.getElementById('btnReciboCancelar').style.display = 'none';
         
         // Scroll para o topo
         window.scrollTo({ top: 0, behavior: 'smooth' });
