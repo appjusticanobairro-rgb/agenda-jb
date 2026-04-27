@@ -499,9 +499,11 @@
         </div>
 
         <!-- Página de Confirmação -->
-        <div id="confirmacaoPage" class="public-page">
-            <div class="recibo-wrapper">
-                <!-- Botões de Ação no Topo -->
+                <div id="confirmacaoPage" class="public-page">
+            <header class="public-header-recibo">
+                <div class="header-logo">
+                    <img src="logo_jb.png" alt="Justiça no Bairro">
+                </div>
                 <div class="recibo-actions">
                     <button id="btnReciboNovo" class="btn-recibo-blue" onclick="novoAgendamento()">
                         <i class="fas fa-plus"></i> Novo Agendamento
@@ -512,10 +514,18 @@
                     <button id="btnReciboCancelar" class="btn-recibo-cancel" onclick="cancelarAgendamento()">
                         <i class="fas fa-times-circle"></i> Cancelar Agendamento
                     </button>
-                    <button id="btnReciboImprimir" class="btn-recibo-print" onclick="imprimirRecibo()">
+                    <button id="btnReciboImprimir" class="btn-recibo-blue" onclick="window.print()">
                         <i class="fas fa-print"></i> Imprimir Recibo
                     </button>
                 </div>
+            </header>
+                        <div class="recibo-wrapper">
+                <div class="agenda-title-card">
+                    <h1 id="confirmAgendaTitle">PEDIDO DE AGENDAMENTO</h1>
+                    <p>Sistema de Agendamento Online</p>
+                </div>
+                <!-- Botões de Ação no Topo -->
+                
 
                 <!-- Card Principal do Recibo -->
                 <div class="recibo-card">
@@ -632,6 +642,7 @@
                         Dúvidas Secretaria do Programa Justiça no bairro (41) 3200-2801
                     </div>
                 </div>
+
             </div>
         </div>
 
