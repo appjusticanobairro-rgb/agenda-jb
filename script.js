@@ -1118,12 +1118,16 @@ function renderAgendas(filtered = null) {
                 <div class="card-title-section">
                     <h3 class="card-title" style="font-size: 20px;">${agenda.nome}</h3>
                 </div>
-                <div class="card-actions admin-only flex">
+                <div class="card-actions ${isPerfilAgenda ? 'flex' : 'admin-only flex'}">
+                    ${!isPerfilAgenda ? `
                     <button class="icon-btn" title="Atribuir Usuários" onclick="abrirModalAtribuirUsuarios(${agenda.id})" style="background: #ede7f6; color: #7e57c2;"><i class="fas fa-user-friends"></i></button>
+                    ` : ''}
                     <button class="icon-btn search" title="Pesquisar Agendamentos" onclick="openModal('searchAgenda', ${agenda.id})" style="background: #e0f2f1; color: #00bfa5;"><i class="fas fa-search"></i></button>
                     <button class="icon-btn settings" title="Configurações" onclick="${isPerfilAgenda ? "showToast('Sem permissão para esta ação', 'warning')" : `editAgenda(${agenda.id})`}" style="background: #e3f2fd; color: #2196f3;"><i class="fas fa-cog"></i></button>
                     <button class="icon-btn copy" title="Duplicar/Copiar" onclick="${isPerfilAgenda ? "showToast('Sem permissão para esta ação', 'warning')" : `navigator.clipboard.writeText('${link}'); showToast('Link Copiado!')`}" style="background: #e8f5e9; color: #4caf50;"><i class="fas fa-copy"></i></button>
-                    <button class="icon-btn delete" title="Excluir Agenda" onclick="${isPerfilAgenda ? "showToast('Sem permissão para esta ação', 'warning')" : `excluirAgenda(${agenda.id})`}" style="background: #ffebee; color: #f44336;"><i class="fas fa-trash"></i></button>
+                    ${!isPerfilAgenda ? `
+                    <button class="icon-btn delete" title="Excluir Agenda" onclick="excluirAgenda(${agenda.id})" style="background: #ffebee; color: #f44336;"><i class="fas fa-trash"></i></button>
+                    ` : ''}
                 </div>
             </div>
 
@@ -1978,17 +1982,12 @@ function aplicarPermissoes() {
             }
         });
         // Esconde botões globais de ação (Adicionar Agenda, Serviços, Endereços, Pesquisa)
-        // mas libera os card-actions das agendas vinculadas
+        // mas libera os card-actions das agendas vinculadas (gerenciado em renderAgendas)
         const mainActionBar = document.getElementById('mainActionBar');
         if (mainActionBar) {
             mainActionBar.classList.remove('admin-only');
-            mainActionBar.style.display = 'none'; // Esconde a barra inteira para Agenda
+            mainActionBar.style.display = 'none';
         }
-        // Libera os card-actions das agendas (botões de cada card)
-        document.querySelectorAll('.card-actions.admin-only').forEach(el => {
-            el.classList.remove('admin-only');
-            el.style.display = 'flex';
-        });
         // Esconde o título de configuração de agendas e mostra um simples
         const headerH1 = document.querySelector('.main-content > .header h1');
         if (headerH1 && headerH1.textContent.includes('Configuração')) {
@@ -2012,7 +2011,6 @@ function aplicarPermissoes() {
 
     // Security: Redirect if User is in forbidden section
     if (isPerfilAgenda) {
-        // Agenda profile: always stay on agendas
         showSection('agendas');
     } else if (!isAdmin) {
         const currentSection = document.querySelector('.nav-item.active span')?.textContent.toLowerCase();
@@ -2020,9 +2018,6 @@ function aplicarPermissoes() {
             showSection('relatorios');
         }
     }
-
-    // Refresh agendas to apply filtering
-    renderAgendas();
 }
 
 
