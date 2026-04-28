@@ -1926,18 +1926,27 @@ function aplicarPermissoes() {
     if (isPerfilAgenda) {
         document.querySelectorAll('.nav-menu .nav-item').forEach(item => {
             const label = (item.querySelector('span')?.textContent || '').trim().toLowerCase();
-            if (label !== 'agendas' && label !== 'sair') {
-                item.style.display = 'none';
-            } else {
+            if (label === 'agendas') {
+                // Remove admin-only para que o CSS não esconda com !important
+                item.classList.remove('admin-only');
+                item.style.display = 'flex';
+            } else if (label === 'sair') {
                 item.style.display = '';
+            } else {
+                item.style.display = 'none';
             }
         });
         // Esconde botões globais de ação (Adicionar Agenda, Serviços, Endereços, Pesquisa)
-        document.querySelectorAll('.header .btn').forEach(btn => {
-            const text = (btn.textContent || '').trim().toLowerCase();
-            if (text.includes('adicionar') || text.includes('servi') || text.includes('endere') || text.includes('pesquis')) {
-                btn.style.display = 'none';
-            }
+        // mas libera os card-actions das agendas vinculadas
+        const mainActionBar = document.getElementById('mainActionBar');
+        if (mainActionBar) {
+            mainActionBar.classList.remove('admin-only');
+            mainActionBar.style.display = 'none'; // Esconde a barra inteira para Agenda
+        }
+        // Libera os card-actions das agendas (botões de cada card)
+        document.querySelectorAll('.card-actions.admin-only').forEach(el => {
+            el.classList.remove('admin-only');
+            el.style.display = 'flex';
         });
         // Esconde o título de configuração de agendas e mostra um simples
         const headerH1 = document.querySelector('.main-content > .header h1');
@@ -1952,6 +1961,11 @@ function aplicarPermissoes() {
         // Restaura visibilidade para outros perfis
         document.querySelectorAll('.nav-menu .nav-item').forEach(item => {
             item.style.display = '';
+            // Restaura admin-only se tinha sido removida
+            const label = (item.querySelector('span')?.textContent || '').trim().toLowerCase();
+            if (label === 'agendas' && !item.classList.contains('admin-only')) {
+                item.classList.add('admin-only');
+            }
         });
     }
 
@@ -2074,9 +2088,14 @@ function showSection(section) {
     // Security check: Only admins can access 'agendas', 'usuarios' and 'dashboard'
     const profile = (usuarioLogado.perfil || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     const isAdmin = profile === 'administrador';
+    const isPerfilAgenda = profile === 'agenda';
 
-    if (!isAdmin && (section === 'agendas' || section === 'usuarios' || section === 'dashboard')) {
+    if (!isAdmin && !isPerfilAgenda && (section === 'agendas' || section === 'usuarios' || section === 'dashboard')) {
         section = 'relatorios';
+    }
+    // Perfil Agenda: somente pode acessar 'agendas'
+    if (isPerfilAgenda && section !== 'agendas') {
+        section = 'agendas';
     }
 
     // Update Sidebar
