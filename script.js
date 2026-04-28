@@ -1,4 +1,4 @@
-const API_URL = 'https://script.google.com/macros/s/AKfycbyNnD8lp86CR2I7rJCIcvbqERJ1WgqN3pgZcXsl5MpMHAWqLkHbY2f64KiCgT_8necKvQ/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbwSMkz3Q7H6wD0q2AJ9dbbC4YP2BTGaeTf8eGvdIa6xiBmusxeUuHnGT92cmyf8BSosZA/exec';
 
 // Data Store
 let agendas = [];
@@ -1556,11 +1556,17 @@ async function salvarUsuariosAgenda(agendaId) {
         }
 
         user.agendasPermitidas = agendasP;
-        await salvarDadosCloud('saveUsuario', user);
+        console.log(`[Agenda Profile] Salvando user ${user.login} com agendas:`, agendasP);
+        const success = await salvarDadosCloud('saveUsuario', user);
+        console.log(`[Agenda Profile] Resposta do save para ${user.login}:`, success);
     }
 
+    // Invalida o cache local para forçar carregamento da nuvem no próximo F5 ou solicitação
+    localStorage.removeItem('dadosApp');
+    
     showToast('Permissões salvas com sucesso!');
-    renderAgendas();
+    // Recarrega os dados da nuvem para garantir sincronia total
+    solicitarDadosCloud();
 }
 
 function pesquisarAdminAgendamento(agendaId) {
