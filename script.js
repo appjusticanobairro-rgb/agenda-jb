@@ -1,4 +1,4 @@
-const API_URL = 'https://script.google.com/macros/s/AKfycbzCecQK6mQfT5VITQMiyGU3qJkhWjr-8wdItrLJhyI_eUW9xRxwpdBhDWAlOK3ib26Jrg/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbyNnD8lp86CR2I7rJCIcvbqERJ1WgqN3pgZcXsl5MpMHAWqLkHbY2f64KiCgT_8necKvQ/exec';
 
 // Data Store
 let agendas = [];
@@ -144,6 +144,7 @@ function processarDadosApp(data) {
     servicosDisponiveis = (data.servicos && data.servicos.length > 0) ? data.servicos : defaultServices;
     enderecosDisponiveis = (data.enderecos && data.enderecos.length > 0) ? data.enderecos : ["Av. Pres. Kennedy, n.º 900, Bairro Centro, Telêmaco Borba"];
 
+    console.log("Usuarios carregados com agendasPermitidas:", usuarios.map(u => ({ login: u.login, agendas: u.agendasPermitidas })));
     console.log("Dados processados com sucesso.");
 }
 
