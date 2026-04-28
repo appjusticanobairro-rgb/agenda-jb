@@ -112,13 +112,21 @@ async function carregarDados(isBackground = false) {
 }
 
 function processarDadosApp(data) {
-    agendas = (data.agendas || []).map(a => ({
-        ...a,
-        dataInicial: limparDataISO(a.dataInicial),
-        ultimaData: limparDataISO(a.ultimaData),
-        atendimentoInicial: limparDataISO(a.atendimentoInicial),
-        atendimentoFinal: limparDataISO(a.atendimentoFinal)
-    }));
+    agendas = (data.agendas || []).map(a => {
+        // Parse usuariosPermitidos robustly (may come as JSON string, CSV, or array)
+        let up = a.usuariosPermitidos || [];
+        if (typeof up === 'string') {
+            try { up = JSON.parse(up); } catch(e) { up = up.split(',').map(s => s.trim()).filter(Boolean); }
+        }
+        return {
+            ...a,
+            dataInicial: limparDataISO(a.dataInicial),
+            ultimaData: limparDataISO(a.ultimaData),
+            atendimentoInicial: limparDataISO(a.atendimentoInicial),
+            atendimentoFinal: limparDataISO(a.atendimentoFinal),
+            usuariosPermitidos: up
+        };
+    });
     agendamentos = (data.agendamentos || []).map(a => ({
         ...a,
         data: limparDataISO(a.data),
@@ -1041,10 +1049,19 @@ function renderAgendas(filtered = null) {
     const isPerfilAgenda = perfilNorm === 'agenda';
     if (isPerfilAgenda && !filtered) {
         const loginUser = (usuarioLogado.login || '').toLowerCase();
+        console.log('[Agenda Profile] Filtrando agendas para login:', loginUser);
         data = data.filter(a => {
-            const permitidos = (a.usuariosPermitidos || []).map(u => u.toLowerCase());
-            return permitidos.includes(loginUser);
+            // Robust: handle string, array, or undefined
+            let permitidos = a.usuariosPermitidos || [];
+            if (typeof permitidos === 'string') {
+                permitidos = permitidos.split(',').map(s => s.trim());
+            }
+            const permitidosLower = permitidos.map(u => (u || '').toLowerCase());
+            const match = permitidosLower.includes(loginUser);
+            console.log(`  Agenda "${a.nome}" - usuariosPermitidos:`, a.usuariosPermitidos, '-> match:', match);
+            return match;
         });
+        console.log('[Agenda Profile] Agendas filtradas:', data.length);
     }
     const baseUrl = window.location.href.split('#')[0];
 
