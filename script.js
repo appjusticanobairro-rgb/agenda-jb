@@ -132,7 +132,13 @@ function processarDadosApp(data) {
         data: limparDataISO(a.data),
         horario: limparHoraISO(a.horario)
     }));
-    usuarios = data.usuarios || [];
+    usuarios = (data.usuarios || []).map(u => {
+        let ap = u.agendasPermitidas || [];
+        if (typeof ap === 'string') {
+            try { ap = JSON.parse(ap); } catch(e) { ap = []; }
+        }
+        return { ...u, agendasPermitidas: ap };
+    });
 
     // Servicos e Endereços: usar defaults se vazios
     servicosDisponiveis = (data.servicos && data.servicos.length > 0) ? data.servicos : defaultServices;
@@ -1049,18 +1055,14 @@ function renderAgendas(filtered = null) {
     const isPerfilAgenda = perfilNorm === 'agenda';
     if (isPerfilAgenda && !filtered) {
         const loginUser = (usuarioLogado.login || '').toLowerCase();
-        console.log('[Agenda Profile] Filtrando agendas para login:', loginUser);
-        data = data.filter(a => {
-            // Robust: handle string, array, or undefined
-            let permitidos = a.usuariosPermitidos || [];
-            if (typeof permitidos === 'string') {
-                permitidos = permitidos.split(',').map(s => s.trim());
-            }
-            const permitidosLower = permitidos.map(u => (u || '').toLowerCase());
-            const match = permitidosLower.includes(loginUser);
-            console.log(`  Agenda "${a.nome}" - usuariosPermitidos:`, a.usuariosPermitidos, '-> match:', match);
-            return match;
-        });
+        // Lê as agendas permitidas direto do objeto do usuário logado (persistido na nuvem)
+        const userObj = usuarios.find(u => u.login && u.login.toLowerCase() === loginUser);
+        let agendasPermitidas = (userObj && userObj.agendasPermitidas) || [];
+        if (typeof agendasPermitidas === 'string') {
+            try { agendasPermitidas = JSON.parse(agendasPermitidas); } catch(e) { agendasPermitidas = []; }
+        }
+        console.log('[Agenda Profile] login:', loginUser, 'agendasPermitidas:', agendasPermitidas);
+        data = data.filter(a => agendasPermitidas.map(Number).includes(Number(a.id)));
         console.log('[Agenda Profile] Agendas filtradas:', data.length);
     }
     const baseUrl = window.location.href.split('#')[0];
@@ -1277,22 +1279,26 @@ function openModal(type, extraId = null) {
             const p = (u.perfil || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
             return p === 'agenda' && u.status === 'Ativo';
         });
-        const permitidos = (agenda ? agenda.usuariosPermitidos : []) || [];
         if (usuariosAgenda.length === 0) {
             body.innerHTML = `<div class="empty-results" style="padding: 30px; text-align: center;"><i class="fas fa-user-slash" style="font-size: 40px; color: #ccc; margin-bottom: 10px;"></i><p>Nenhum usuário com perfil <strong>Agenda</strong> foi cadastrado.<br>Crie um usuário com o perfil "Agenda" primeiro.</p></div>`;
         } else {
             body.innerHTML = `
                 <p style="margin-bottom: 15px; color: #666;">Selecione os usuários que poderão visualizar e pesquisar nesta agenda:</p>
                 <div id="listaUsuariosAtribuir" style="max-height: 300px; overflow-y: auto;">
-                    ${usuariosAgenda.map(u => `
+                    ${usuariosAgenda.map(u => {
+                        let agendasP = u.agendasPermitidas || [];
+                        if (typeof agendasP === 'string') { try { agendasP = JSON.parse(agendasP); } catch(e) { agendasP = []; } }
+                        const temPermissao = agendasP.map(Number).includes(Number(extraId));
+                        return `
                         <label style="display: flex; align-items: center; gap: 10px; padding: 10px; border-bottom: 1px solid #eee; cursor: pointer;">
-                            <input type="checkbox" value="${u.login}" ${permitidos.map(p => p.toLowerCase()).includes(u.login.toLowerCase()) ? 'checked' : ''} style="width: 18px; height: 18px;">
+                            <input type="checkbox" data-user-id="${u.id}" ${temPermissao ? 'checked' : ''} style="width: 18px; height: 18px;">
                             <div>
                                 <div style="font-weight: 600;">${u.nome}</div>
                                 <div style="font-size: 12px; color: #888;">${u.login}</div>
                             </div>
                         </label>
-                    `).join('')}
+                    `;
+                    }).join('')}
                 </div>
             `;
         }
@@ -1525,22 +1531,33 @@ function abrirModalAtribuirUsuarios(agendaId) {
 
 async function salvarUsuariosAgenda(agendaId) {
     const checkboxes = document.querySelectorAll('#listaUsuariosAtribuir input[type="checkbox"]');
-    const selecionados = [];
-    checkboxes.forEach(cb => {
-        if (cb.checked) selecionados.push(cb.value);
-    });
+    
+    closeModal();
+    showToast('Salvando permissões na nuvem...', 'info');
 
-    const agenda = agendas.find(a => a.id == agendaId);
-    if (!agenda) {
-        showToast('Agenda não encontrada', 'error');
-        return;
+    // Para cada usuário de perfil Agenda, adicionar ou remover esta agenda do array agendasPermitidas
+    for (const cb of checkboxes) {
+        const userId = Number(cb.dataset.userId);
+        const user = usuarios.find(u => u.id === userId);
+        if (!user) continue;
+
+        let agendasP = user.agendasPermitidas || [];
+        if (typeof agendasP === 'string') {
+            try { agendasP = JSON.parse(agendasP); } catch(e) { agendasP = []; }
+        }
+        agendasP = agendasP.map(Number);
+
+        const agIdNum = Number(agendaId);
+        if (cb.checked && !agendasP.includes(agIdNum)) {
+            agendasP.push(agIdNum);
+        } else if (!cb.checked) {
+            agendasP = agendasP.filter(id => id !== agIdNum);
+        }
+
+        user.agendasPermitidas = agendasP;
+        await salvarDadosCloud('saveUsuario', user);
     }
 
-    agenda.usuariosPermitidos = selecionados;
-
-    closeModal();
-    showToast('Salvando permissões...', 'info');
-    await salvarDadosCloud('saveAgenda', agenda);
     showToast('Permissões salvas com sucesso!');
     renderAgendas();
 }
