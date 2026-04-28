@@ -758,6 +758,14 @@ function mostrarConfirmacao() {
     document.getElementById('confirmNome').textContent = agendamentoData.nome;
     document.getElementById('confirmTelefone').textContent = agendamentoData.telefone;
     document.getElementById('confirmEndereco').textContent = agendamentoData.endereco;
+    
+    // Atualiza a data e hora em que este comprovante/recibo foi gerado na tela/impressão
+    const agora = new Date();
+    const dataGerado = agora.toLocaleDateString('pt-BR') + ' às ' + agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const reciboBody = document.querySelector('#confirmacaoPage .recibo-body');
+    if (reciboBody) {
+        reciboBody.setAttribute('data-date', dataGerado);
+    }
 
     // Reset visibility of action buttons (Exibe todos para novos agendamentos)
     if (document.getElementById('btnReciboNovo')) document.getElementById('btnReciboNovo').style.display = 'flex';
@@ -1540,6 +1548,14 @@ function imprimirAgendamentoInvisivel(codigo) {
         document.getElementById('confirmNome').textContent = agendamentoData.nome;
         document.getElementById('confirmTelefone').textContent = agendamentoData.telefone;
         document.getElementById('confirmEndereco').textContent = agendamentoData.endereco;
+        
+        // Atualiza a data e hora em que este comprovante/recibo foi gerado na impressão
+        const agora = new Date();
+        const dataGerado = agora.toLocaleDateString('pt-BR') + ' às ' + agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        const reciboBody = document.querySelector('#confirmacaoPage .recibo-body');
+        if (reciboBody) {
+            reciboBody.setAttribute('data-date', dataGerado);
+        }
         
         // Como no print_styles.css forçaremos o `#confirmacaoPage` aparecer, 
         // apenas invocamos o print() sem fechar ou trocar nenhuma tela admin.
