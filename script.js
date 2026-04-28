@@ -769,7 +769,7 @@ function mostrarConfirmacao() {
 
 function novoAgendamento() {
     if (confirm('Deseja iniciar um novo agendamento?')) {
-        resetFormularioAgendamento();
+        window.location.reload();
     }
 }
 
@@ -810,23 +810,15 @@ async function cancelarAgendamento() {
             
             hideLoading();
             if (sucesso) {
-                agendamentoData = {};
                 showToast('Agendamento cancelado com sucesso.');
-                
-                // Volta pra tela de agendamento
-                document.getElementById('confirmacaoPage').classList.remove('active');
-                document.getElementById('agendamentoPage').classList.add('active');
-                switchPublicSection('novo');
+                setTimeout(() => window.location.reload(), 1500);
             } else {
                 showToast('Erro ao cancelar. Tente novamente.', 'error');
             }
         } else {
             // Se ainda não salvou na nuvem, apenas reseta
-            agendamentoData = {};
             hideLoading();
-            document.getElementById('confirmacaoPage').classList.remove('active');
-            document.getElementById('agendamentoPage').classList.add('active');
-            switchPublicSection('novo');
+            window.location.reload();
         }
     }
 }
