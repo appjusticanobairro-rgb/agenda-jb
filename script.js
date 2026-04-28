@@ -355,9 +355,12 @@ function mostrarAdmin() {
     if (appContainer) appContainer.style.display = '';
     if (loginSection) loginSection.style.display = 'none';
 
-    // Safety check for permissions on entry: Any user not explicitly an Administrator goes to reports
+    // Safety check for permissions on entry
     const profile = (usuarioLogado.perfil || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    if (profile !== 'administrador') {
+    if (profile === 'agenda') {
+        // Perfil Agenda: vai direto para a seção de agendas (somente as vinculadas)
+        showSection('agendas');
+    } else if (profile !== 'administrador') {
         showSection('relatorios');
     }
 
@@ -1031,7 +1034,18 @@ function calcularHorariosLivres(agenda, agendamentosAgendaLength) {
 
 function renderAgendas(filtered = null) {
     const container = document.getElementById('agendasContainer');
-    const data = filtered || agendas;
+    let data = filtered || agendas;
+
+    // Se o usuário logado for perfil 'Agenda', filtra somente as agendas vinculadas
+    const perfilNorm = (usuarioLogado?.perfil || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const isPerfilAgenda = perfilNorm === 'agenda';
+    if (isPerfilAgenda && !filtered) {
+        const loginUser = (usuarioLogado.login || '').toLowerCase();
+        data = data.filter(a => {
+            const permitidos = (a.usuariosPermitidos || []).map(u => u.toLowerCase());
+            return permitidos.includes(loginUser);
+        });
+    }
     const baseUrl = window.location.href.split('#')[0];
 
     if (data.length === 0) {
@@ -1085,10 +1099,11 @@ function renderAgendas(filtered = null) {
                     <h3 class="card-title" style="font-size: 20px;">${agenda.nome}</h3>
                 </div>
                 <div class="card-actions admin-only flex">
+                    <button class="icon-btn" title="Atribuir Usuários" onclick="abrirModalAtribuirUsuarios(${agenda.id})" style="background: #ede7f6; color: #7e57c2;"><i class="fas fa-user-friends"></i></button>
                     <button class="icon-btn search" title="Pesquisar Agendamentos" onclick="openModal('searchAgenda', ${agenda.id})" style="background: #e0f2f1; color: #00bfa5;"><i class="fas fa-search"></i></button>
-                    <button class="icon-btn settings" title="Configurações" onclick="editAgenda(${agenda.id})" style="background: #e3f2fd; color: #2196f3;"><i class="fas fa-cog"></i></button>
-                    <button class="icon-btn copy" title="Duplicar/Copiar" onclick="navigator.clipboard.writeText('${link}'); showToast('Link Copiado!')" style="background: #e8f5e9; color: #4caf50;"><i class="fas fa-copy"></i></button>
-                    <button class="icon-btn delete" title="Excluir Agenda" onclick="excluirAgenda(${agenda.id})" style="background: #ffebee; color: #f44336;"><i class="fas fa-trash"></i></button>
+                    <button class="icon-btn settings" title="Configurações" onclick="${isPerfilAgenda ? "showToast('Sem permissão para esta ação', 'warning')" : `editAgenda(${agenda.id})`}" style="background: #e3f2fd; color: #2196f3;"><i class="fas fa-cog"></i></button>
+                    <button class="icon-btn copy" title="Duplicar/Copiar" onclick="${isPerfilAgenda ? "showToast('Sem permissão para esta ação', 'warning')" : `navigator.clipboard.writeText('${link}'); showToast('Link Copiado!')`}" style="background: #e8f5e9; color: #4caf50;"><i class="fas fa-copy"></i></button>
+                    <button class="icon-btn delete" title="Excluir Agenda" onclick="${isPerfilAgenda ? "showToast('Sem permissão para esta ação', 'warning')" : `excluirAgenda(${agenda.id})`}" style="background: #ffebee; color: #f44336;"><i class="fas fa-trash"></i></button>
                 </div>
             </div>
 
@@ -1238,6 +1253,38 @@ function openModal(type, extraId = null) {
             </div>
         `;
         footerHtml = `<button class="btn btn-cancel" onclick="closeModal()">Fechar</button>`;
+    } else if (type === 'atribuirUsuarios') {
+        const agenda = agendas.find(a => a.id == extraId);
+        title.textContent = `Atribuir Usuários: ${agenda ? agenda.nome : ''}`;
+        const usuariosAgenda = usuarios.filter(u => {
+            const p = (u.perfil || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            return p === 'agenda' && u.status === 'Ativo';
+        });
+        const permitidos = (agenda ? agenda.usuariosPermitidos : []) || [];
+        if (usuariosAgenda.length === 0) {
+            body.innerHTML = `<div class="empty-results" style="padding: 30px; text-align: center;"><i class="fas fa-user-slash" style="font-size: 40px; color: #ccc; margin-bottom: 10px;"></i><p>Nenhum usuário com perfil <strong>Agenda</strong> foi cadastrado.<br>Crie um usuário com o perfil "Agenda" primeiro.</p></div>`;
+        } else {
+            body.innerHTML = `
+                <p style="margin-bottom: 15px; color: #666;">Selecione os usuários que poderão visualizar e pesquisar nesta agenda:</p>
+                <div id="listaUsuariosAtribuir" style="max-height: 300px; overflow-y: auto;">
+                    ${usuariosAgenda.map(u => `
+                        <label style="display: flex; align-items: center; gap: 10px; padding: 10px; border-bottom: 1px solid #eee; cursor: pointer;">
+                            <input type="checkbox" value="${u.login}" ${permitidos.map(p => p.toLowerCase()).includes(u.login.toLowerCase()) ? 'checked' : ''} style="width: 18px; height: 18px;">
+                            <div>
+                                <div style="font-weight: 600;">${u.nome}</div>
+                                <div style="font-size: 12px; color: #888;">${u.login}</div>
+                            </div>
+                        </label>
+                    `).join('')}
+                </div>
+            `;
+        }
+        footerHtml = `
+            <button class="btn btn-cancel" onclick="closeModal()">Cancelar</button>
+            <button class="btn btn-primary" onclick="salvarUsuariosAgenda(${extraId})">
+                <i class="fas fa-save"></i> Salvar
+            </button>
+        `;
     }
 
     if (footer) footer.innerHTML = footerHtml;
@@ -1398,6 +1445,8 @@ async function saveAgenda() {
         };
     });
 
+    const existingAgenda = editingAgendaId ? agendas.find(a => a.id === editingAgendaId) : null;
+
     const newAgenda = {
         id: editingAgendaId || Date.now(),
         nome,
@@ -1411,9 +1460,10 @@ async function saveAgenda() {
         endereco: document.getElementById('formEndereco').value,
         servicos,
         horarioAtendimento,
-        maxAgendamentosHorario: parseInt(document.getElementById('formMaxAgendamentos').value) || 1, // Capture value
+        maxAgendamentosHorario: parseInt(document.getElementById('formMaxAgendamentos').value) || 1,
         camposSolicitados: ['Nome'],
-        formularios: 0, agendamentosFuturos: 0, horariosLivres: 0 // Stats placeholders
+        usuariosPermitidos: existingAgenda ? (existingAgenda.usuariosPermitidos || []) : [],
+        formularios: 0, agendamentosFuturos: 0, horariosLivres: 0
     };
 
     if (editingAgendaId) {
@@ -1444,6 +1494,38 @@ function closeModal() {
     document.getElementById('modalOverlay').classList.remove('active');
     editingAgendaId = null;
     editingUsuarioId = null;
+}
+
+function abrirModalAtribuirUsuarios(agendaId) {
+    // Perfil Agenda não pode atribuir usuários
+    const perfilNorm = (usuarioLogado?.perfil || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (perfilNorm === 'agenda') {
+        showToast('Sem permissão para esta ação', 'warning');
+        return;
+    }
+    openModal('atribuirUsuarios', agendaId);
+}
+
+async function salvarUsuariosAgenda(agendaId) {
+    const checkboxes = document.querySelectorAll('#listaUsuariosAtribuir input[type="checkbox"]');
+    const selecionados = [];
+    checkboxes.forEach(cb => {
+        if (cb.checked) selecionados.push(cb.value);
+    });
+
+    const agenda = agendas.find(a => a.id == agendaId);
+    if (!agenda) {
+        showToast('Agenda não encontrada', 'error');
+        return;
+    }
+
+    agenda.usuariosPermitidos = selecionados;
+
+    closeModal();
+    showToast('Salvando permissões...', 'info');
+    await salvarDadosCloud('saveAgenda', agenda);
+    showToast('Permissões salvas com sucesso!');
+    renderAgendas();
 }
 
 function pesquisarAdminAgendamento(agendaId) {
@@ -1826,6 +1908,7 @@ function aplicarPermissoes() {
 
     const profile = (usuarioLogado.perfil || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     const isAdmin = profile === 'administrador';
+    const isPerfilAgenda = profile === 'agenda';
 
     // Update Body Class
     if (isAdmin) {
@@ -1839,16 +1922,52 @@ function aplicarPermissoes() {
     document.querySelector('.user-role').textContent = (usuarioLogado.perfil || 'Usuário').toUpperCase();
     document.querySelector('.avatar').textContent = (usuarioLogado.nome || 'U').charAt(0).toUpperCase();
 
-    // Security: Redirect if User is in forbidden section
-    const currentSection = document.querySelector('.nav-item.active span')?.textContent.toLowerCase();
-    if (!isAdmin && (currentSection === 'agendas' || currentSection === 'usuários')) {
-        showSection('relatorios');
+    // Perfil Agenda: esconde todos os itens do menu lateral exceto "Agendas" e "Sair"
+    if (isPerfilAgenda) {
+        document.querySelectorAll('.nav-menu .nav-item').forEach(item => {
+            const label = (item.querySelector('span')?.textContent || '').trim().toLowerCase();
+            if (label !== 'agendas' && label !== 'sair') {
+                item.style.display = 'none';
+            } else {
+                item.style.display = '';
+            }
+        });
+        // Esconde botões globais de ação (Adicionar Agenda, Serviços, Endereços, Pesquisa)
+        document.querySelectorAll('.header .btn').forEach(btn => {
+            const text = (btn.textContent || '').trim().toLowerCase();
+            if (text.includes('adicionar') || text.includes('servi') || text.includes('endere') || text.includes('pesquis')) {
+                btn.style.display = 'none';
+            }
+        });
+        // Esconde o título de configuração de agendas e mostra um simples
+        const headerH1 = document.querySelector('.main-content > .header h1');
+        if (headerH1 && headerH1.textContent.includes('Configuração')) {
+            headerH1.textContent = 'Agendas';
+        }
+        const headerP = document.querySelector('.main-content > .header p');
+        if (headerP && headerP.textContent.includes('Configurações')) {
+            headerP.textContent = 'Agendas vinculadas ao seu perfil';
+        }
+    } else {
+        // Restaura visibilidade para outros perfis
+        document.querySelectorAll('.nav-menu .nav-item').forEach(item => {
+            item.style.display = '';
+        });
     }
 
-    // Hide edit/copy buttons from Agendas if not admin
-    if (!isAdmin) {
-        renderAgendas(); // Refresh to ensure buttons are hidden by CSS or filtered out
+    // Security: Redirect if User is in forbidden section
+    if (isPerfilAgenda) {
+        // Agenda profile: always stay on agendas
+        showSection('agendas');
+    } else if (!isAdmin) {
+        const currentSection = document.querySelector('.nav-item.active span')?.textContent.toLowerCase();
+        if (currentSection === 'agendas' || currentSection === 'usuários') {
+            showSection('relatorios');
+        }
     }
+
+    // Refresh agendas to apply filtering
+    renderAgendas();
 }
 
 
@@ -1863,7 +1982,7 @@ function renderUsuarios() {
                 <div style="font-size: 12px; color: var(--gray-600);">${u.login}</div>
             </td>
             <td>
-                <span class="role-badge ${u.perfil === 'Administrador' ? 'role-admin' : 'role-viewer'}">
+                <span class="role-badge ${u.perfil === 'Administrador' ? 'role-admin' : (u.perfil === 'Agenda' ? 'role-agenda' : 'role-viewer')}">
                     ${u.perfil}
                 </span>
             </td>
@@ -2370,6 +2489,7 @@ function getUsuarioForm() {
                 <select id="userPerfil" class="form-control">
                     <option value="Administrador">Administrador (Acesso Total)</option>
                     <option value="Usuário">Usuário (Apenas Relatórios)</option>
+                    <option value="Agenda">Agenda (Restrito a Agendas Vinculadas)</option>
                 </select>
             </div>
             <div class="form-group">

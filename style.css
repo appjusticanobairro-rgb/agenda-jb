@@ -114,6 +114,11 @@ body.is-admin .admin-only.flex {
     color: #616161;
 }
 
+.role-agenda {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
 .container {
     display: flex;
     min-height: 100vh;
