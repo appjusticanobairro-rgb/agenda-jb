@@ -1513,28 +1513,31 @@ async function excluirAgendamentoAdmin(codigo, agendaId) {
 }
 
 function exibirAgendamentoAdmin(codigo) {
-    closeModal();
-    exibirAgendamentoConsultado(codigo);
-    
-    // Insere o botão de voltar ao Admin no cabeçalho
-    let btnVoltar = document.getElementById('btnVoltarAdminRecibo');
-    if (!btnVoltar) {
-        const actionsMenu = document.querySelector('.public-header-recibo .recibo-actions');
-        if (actionsMenu) {
-            actionsMenu.insertAdjacentHTML('afterbegin', `
-                <button id="btnVoltarAdminRecibo" class="btn-recibo-outline" onclick="voltarParaMenuAdmin()" style="margin-right: 10px;">
-                    <i class="fas fa-arrow-left"></i> Voltar Admin
-                </button>
-            `);
-        }
+    const found = agendamentos.find(a => a.codigo === codigo);
+    if (found) {
+        agendamentoData = found;
+        
+        // Popula as informações da página oculta do recibo
+        const titleEl = document.getElementById('confirmAgendaTitle');
+        if (titleEl) titleEl.textContent = (agendamentoData.agendaNome || 'Pedido de Agendamento').toUpperCase();
+        
+        document.getElementById('confirmCodigo').textContent = agendamentoData.codigo;
+        document.getElementById('confirmAgenda').textContent = agendamentoData.agendaNome;
+        document.getElementById('confirmData').textContent = limparData(agendamentoData.data);
+        document.getElementById('confirmHorario').textContent = limparHorario(agendamentoData.horario);
+        document.getElementById('confirmServico').textContent = agendamentoData.servico;
+        document.getElementById('confirmNome').textContent = agendamentoData.nome;
+        document.getElementById('confirmTelefone').textContent = agendamentoData.telefone;
+        document.getElementById('confirmEndereco').textContent = agendamentoData.endereco;
+        
+        // Como no print_styles.css forçaremos o `#confirmacaoPage` aparecer, 
+        // apenas invocamos o print() sem fechar ou trocar nenhuma tela admin.
+        setTimeout(() => {
+            window.print();
+        }, 100);
+    } else {
+        showToast('Agendamento não encontrado.', 'error');
     }
-}
-
-function voltarParaMenuAdmin() {
-    mostrarAdmin();
-    document.getElementById('confirmacaoPage').classList.remove('active');
-    const btn = document.getElementById('btnVoltarAdminRecibo');
-    if (btn) btn.remove();
 }
 
 // Services management
