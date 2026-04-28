@@ -1,8 +1,18 @@
 @media print {
 
-    /* Hide everything by default */
+    /* Hide everything by default but maintain layout for confirmed page */
     body * {
         visibility: hidden;
+    }
+
+    /* Collapse layout heights of everything else to prevent blank pages */
+    .global-header,
+    #adminPage,
+    #agendamentoPage,
+    #desativadaPage,
+    #loginSection,
+    #modalOverlay {
+        display: none !important;
     }
 
     /* Target specific page */
