@@ -1569,6 +1569,14 @@ function imprimirAgendamentoInvisivel(codigo) {
 
 function visualizarAgendamentoAdmin(codigo) {
     closeModal();
+    
+    // Oculta completamente a interface do administrador para o recibo parecer uma "nova aba" limpa
+    const adminPage = document.getElementById('adminPage');
+    if (adminPage) adminPage.style.display = 'none';
+    
+    const globalHeader = document.querySelector('.global-header');
+    if (globalHeader) globalHeader.style.display = 'none';
+
     exibirAgendamentoConsultado(codigo);
     
     // Insere o botão de voltar ao Admin no cabeçalho
@@ -1586,8 +1594,16 @@ function visualizarAgendamentoAdmin(codigo) {
 }
 
 function voltarParaMenuAdmin() {
+    // Restaura a interface do administrador
+    const adminPage = document.getElementById('adminPage');
+    if (adminPage) adminPage.style.display = '';
+    
+    const globalHeader = document.querySelector('.global-header');
+    if (globalHeader) globalHeader.style.display = '';
+
     mostrarAdmin();
     document.getElementById('confirmacaoPage').classList.remove('active');
+    
     const btn = document.getElementById('btnVoltarAdminRecibo');
     if (btn) btn.remove();
 }
