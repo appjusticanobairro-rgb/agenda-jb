@@ -1077,6 +1077,7 @@ function renderAgendas(filtered = null) {
                     <h3 class="card-title" style="font-size: 20px;">${agenda.nome}</h3>
                 </div>
                 <div class="card-actions admin-only flex">
+                    <button class="icon-btn search" title="Pesquisar Agendamentos" onclick="openModal('searchAgenda', ${agenda.id})" style="background: #e0f2f1; color: #00bfa5;"><i class="fas fa-search"></i></button>
                     <button class="icon-btn settings" title="Configurações" onclick="editAgenda(${agenda.id})" style="background: #e3f2fd; color: #2196f3;"><i class="fas fa-cog"></i></button>
                     <button class="icon-btn copy" title="Duplicar/Copiar" onclick="navigator.clipboard.writeText('${link}'); showToast('Link Copiado!')" style="background: #e8f5e9; color: #4caf50;"><i class="fas fa-copy"></i></button>
                     <button class="icon-btn delete" title="Excluir Agenda" onclick="excluirAgenda(${agenda.id})" style="background: #ffebee; color: #f44336;"><i class="fas fa-trash"></i></button>
@@ -1158,7 +1159,7 @@ function renderAgendas(filtered = null) {
 }
 
 // Modal handling
-function openModal(type) {
+function openModal(type, extraId = null) {
     const modal = document.getElementById('modalOverlay');
     const body = document.getElementById('modalBody');
     const title = document.getElementById('modalTitle');
@@ -1210,6 +1211,25 @@ function openModal(type) {
         title.textContent = 'Endereços de Atendimento';
         body.innerHTML = getEnderecosForm();
         footerHtml = `<button class="btn btn-secondary" onclick="closeModal()">Fechar</button>`;
+    } else if (type === 'searchAgenda') {
+        const agenda = agendas.find(a => a.id == extraId);
+        title.textContent = `Pesquisar em: ${agenda.nome}`;
+        body.innerHTML = `
+            <div class="search-container-public" style="margin-bottom: 20px;">
+                <div class="search-box-public">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="adminSearchInput" autocomplete="off"
+                        placeholder="Nome, Telefone ou Código..." onkeyup="pesquisarAdminAgendamento(${extraId})">
+                </div>
+            </div>
+            <div id="adminSearchResults" class="results-container-public">
+                <div class="empty-results">
+                    <i class="fas fa-calendar-search"></i>
+                    <p>Digite algo para pesquisar agendamentos nesta agenda.</p>
+                </div>
+            </div>
+        `;
+        footerHtml = `<button class="btn btn-cancel" onclick="closeModal()">Fechar</button>`;
     }
 
     if (footer) footer.innerHTML = footerHtml;
@@ -1416,6 +1436,105 @@ function closeModal() {
     document.getElementById('modalOverlay').classList.remove('active');
     editingAgendaId = null;
     editingUsuarioId = null;
+}
+
+function pesquisarAdminAgendamento(agendaId) {
+    const input = document.getElementById('adminSearchInput');
+    if (!input) return;
+    const query = input.value.toLowerCase().trim();
+    const resultsContainer = document.getElementById('adminSearchResults');
+
+    if (!query) {
+        resultsContainer.innerHTML = `
+            <div class="empty-results">
+                <i class="fas fa-calendar-search"></i>
+                <p>Digite algo para pesquisar agendamentos nesta agenda.</p>
+            </div>`;
+        return;
+    }
+
+    const filtered = agendamentos.filter(a => 
+        String(a.agendaId) === String(agendaId) && (
+            (a.nome || '').toLowerCase().includes(query) ||
+            (a.telefone || '').includes(query) ||
+            (a.codigo || '').toLowerCase().includes(query)
+        )
+    );
+
+    if (filtered.length === 0) {
+        resultsContainer.innerHTML = `
+            <div class="empty-results">
+                <i class="fas fa-search-minus"></i>
+                <p>Nenhum agendamento encontrado.</p>
+            </div>`;
+        return;
+    }
+
+    resultsContainer.innerHTML = filtered.map(a => `
+        <div class="search-result-card" style="display: flex; flex-direction: column; gap: 10px;">
+            <div class="result-info">
+                <div class="result-name">${a.nome}</div>
+                <div class="result-meta">
+                    <span><i class="fas fa-calendar-alt"></i> ${limparData(a.data)}</span>
+                    <span><i class="fas fa-clock"></i> ${a.horario}</span>
+                    <span><i class="fas fa-hashtag"></i> ${a.codigo}</span>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-view-result" onclick="exibirAgendamentoAdmin('${a.codigo}')" style="flex: 1;">
+                    <i class="fas fa-print"></i> Imprimir
+                </button>
+                <button class="btn-view-result" onclick="excluirAgendamentoAdmin('${a.codigo}', ${agendaId})" style="background: #ffebee; color: #f44336; border-color: #f44336; flex: 1;">
+                    <i class="fas fa-trash"></i> Excluir
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function excluirAgendamentoAdmin(codigo, agendaId) {
+    if (confirm('Tem certeza que deseja EXCLUIR este agendamento permanentemente?')) {
+        showLoading();
+        // Array local
+        const idx = agendamentos.findIndex(a => a.codigo === codigo);
+        if (idx !== -1) agendamentos.splice(idx, 1);
+        
+        // Nuvem
+        const sucesso = await salvarDadosCloud('deleteAgendamento', { codigo: codigo });
+        hideLoading();
+        if (sucesso) {
+            showToast('Agendamento excluído com sucesso.');
+            pesquisarAdminAgendamento(agendaId);
+            renderAgendas(); 
+        } else {
+            showToast('Erro ao excluir na nuvem.', 'error');
+        }
+    }
+}
+
+function exibirAgendamentoAdmin(codigo) {
+    closeModal();
+    exibirAgendamentoConsultado(codigo);
+    
+    // Insere o botão de voltar ao Admin no cabeçalho
+    let btnVoltar = document.getElementById('btnVoltarAdminRecibo');
+    if (!btnVoltar) {
+        const actionsMenu = document.querySelector('.public-header-recibo .recibo-actions');
+        if (actionsMenu) {
+            actionsMenu.insertAdjacentHTML('afterbegin', `
+                <button id="btnVoltarAdminRecibo" class="btn-recibo-outline" onclick="voltarParaMenuAdmin()" style="margin-right: 10px;">
+                    <i class="fas fa-arrow-left"></i> Voltar Admin
+                </button>
+            `);
+        }
+    }
+}
+
+function voltarParaMenuAdmin() {
+    mostrarAdmin();
+    document.getElementById('confirmacaoPage').classList.remove('active');
+    const btn = document.getElementById('btnVoltarAdminRecibo');
+    if (btn) btn.remove();
 }
 
 // Services management
