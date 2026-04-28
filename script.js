@@ -889,7 +889,7 @@ function pesquisarAgendamento() {
                 </div>
             </div>
             <button class="btn-view-result" onclick="exibirAgendamentoConsultado('${a.codigo}')">
-                <i class="fas fa-eye"></i> Visualizar Recibo
+                <i class="fas fa-print"></i> Imprimir Recibo
             </button>
         </div>
     `).join('');
@@ -1480,11 +1480,14 @@ function pesquisarAdminAgendamento(agendaId) {
                     <span><i class="fas fa-hashtag"></i> ${a.codigo}</span>
                 </div>
             </div>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn-view-result" onclick="exibirAgendamentoAdmin('${a.codigo}')" style="flex: 1;">
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn-view-result" onclick="exibirAgendamentoAdmin('${a.codigo}')" style="flex: 1; min-width: 100px;">
                     <i class="fas fa-print"></i> Imprimir
                 </button>
-                <button class="btn-view-result" onclick="excluirAgendamentoAdmin('${a.codigo}', ${agendaId})" style="background: #ffebee; color: #f44336; border-color: #f44336; flex: 1;">
+                <button class="btn-view-result" onclick="visualizarAgendamentoAdmin('${a.codigo}')" style="flex: 1; min-width: 100px;">
+                    <i class="fas fa-eye"></i> Visualizar Recibo
+                </button>
+                <button class="btn-view-result" onclick="excluirAgendamentoAdmin('${a.codigo}', ${agendaId})" style="background: #ffebee; color: #f44336; border-color: #f44336; flex: 1; min-width: 100px;">
                     <i class="fas fa-trash"></i> Excluir
                 </button>
             </div>
@@ -1538,6 +1541,31 @@ function exibirAgendamentoAdmin(codigo) {
     } else {
         showToast('Agendamento não encontrado.', 'error');
     }
+}
+
+function visualizarAgendamentoAdmin(codigo) {
+    closeModal();
+    exibirAgendamentoConsultado(codigo);
+    
+    // Insere o botão de voltar ao Admin no cabeçalho
+    let btnVoltar = document.getElementById('btnVoltarAdminRecibo');
+    if (!btnVoltar) {
+        const actionsMenu = document.querySelector('.public-header-recibo .recibo-actions');
+        if (actionsMenu) {
+            actionsMenu.insertAdjacentHTML('afterbegin', `
+                <button id="btnVoltarAdminRecibo" class="btn-recibo-outline" onclick="voltarParaMenuAdmin()" style="margin-right: 10px;">
+                    <i class="fas fa-arrow-left"></i> Voltar Admin
+                </button>
+            `);
+        }
+    }
+}
+
+function voltarParaMenuAdmin() {
+    mostrarAdmin();
+    document.getElementById('confirmacaoPage').classList.remove('active');
+    const btn = document.getElementById('btnVoltarAdminRecibo');
+    if (btn) btn.remove();
 }
 
 // Services management
