@@ -888,7 +888,7 @@ function pesquisarAgendamento() {
                     <span><i class="fas fa-hashtag"></i> ${a.codigo}</span>
                 </div>
             </div>
-            <button class="btn-view-result" onclick="exibirAgendamentoConsultado('${a.codigo}')">
+            <button class="btn-view-result" onclick="imprimirAgendamentoInvisivel('${a.codigo}')">
                 <i class="fas fa-print"></i> Imprimir Recibo
             </button>
         </div>
@@ -1481,7 +1481,7 @@ function pesquisarAdminAgendamento(agendaId) {
                 </div>
             </div>
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button class="btn-view-result" onclick="exibirAgendamentoAdmin('${a.codigo}')" style="flex: 1; min-width: 100px;">
+                <button class="btn-view-result" onclick="imprimirAgendamentoInvisivel('${a.codigo}')" style="flex: 1; min-width: 100px;">
                     <i class="fas fa-print"></i> Imprimir
                 </button>
                 <button class="btn-view-result" onclick="visualizarAgendamentoAdmin('${a.codigo}')" style="flex: 1; min-width: 100px;">
@@ -1515,10 +1515,18 @@ async function excluirAgendamentoAdmin(codigo, agendaId) {
     }
 }
 
-function exibirAgendamentoAdmin(codigo) {
+function imprimirAgendamentoInvisivel(codigo) {
     const found = agendamentos.find(a => a.codigo === codigo);
     if (found) {
-        agendamentoData = found;
+        agendamentoData = { ...found };
+        
+        if (!agendamentoData.agendaNome || !agendamentoData.endereco) {
+            const agenda = agendas.find(g => String(g.id) === String(found.agendaId));
+            if (agenda) {
+                agendamentoData.agendaNome = agenda.nome;
+                agendamentoData.endereco = agenda.endereco;
+            }
+        }
         
         // Popula as informações da página oculta do recibo
         const titleEl = document.getElementById('confirmAgendaTitle');
