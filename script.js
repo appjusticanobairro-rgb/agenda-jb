@@ -43,12 +43,12 @@ async function carregarDados(isBackground = false) {
 
     const cacheValido = cachedStr && cacheTime && (now - parseInt(cacheTime) < CACHE_DURATION);
     const isPublicPage = window.location.hash && window.location.hash.length > 2;
-    
+
     // Só mostra o loader se NÃO estiver em background, NÃO tiver cache válido, e NÃO for página pública
     if (!isBackground && !cacheValido && !isPublicPage && loader) {
         loader.style.display = 'flex';
     }
-    
+
     if (!isBackground) console.log("Solicitando dados da nuvem...");
     try {
         if (!isBackground && cacheValido) {
@@ -116,7 +116,7 @@ function processarDadosApp(data) {
         // Parse usuariosPermitidos robustly (may come as JSON string, CSV, or array)
         let up = a.usuariosPermitidos || [];
         if (typeof up === 'string') {
-            try { up = JSON.parse(up); } catch(e) { up = up.split(',').map(s => s.trim()).filter(Boolean); }
+            try { up = JSON.parse(up); } catch (e) { up = up.split(',').map(s => s.trim()).filter(Boolean); }
         }
         return {
             ...a,
@@ -135,7 +135,7 @@ function processarDadosApp(data) {
     usuarios = (data.usuarios || []).map(u => {
         let ap = u.agendasPermitidas || [];
         if (typeof ap === 'string') {
-            try { ap = JSON.parse(ap); } catch(e) { ap = []; }
+            try { ap = JSON.parse(ap); } catch (e) { ap = []; }
         }
         return { ...u, agendasPermitidas: ap };
     });
@@ -181,7 +181,7 @@ async function salvarDadosCloud(action, data) {
 
 document.addEventListener('DOMContentLoaded', async function () {
     const hash = window.location.hash;
-    
+
     // Se NÃO for rota pública (sem hash), podemos mostrar o login/admin logo (usando cache se existir)
     if (!hash || hash === "" || hash === "#" || hash === "#/") {
         verificarRota();
@@ -406,12 +406,12 @@ function mostrarPaginaDesativada(titulo, mensagem) {
 
 function mostrarPaginaAgendamento(agenda) {
     currentPublicAgenda = agenda; // Armazena a agenda ativa para uso na pesquisa
-    
+
     // Inicializa agendamentoData com os dados da agenda atual
     agendamentoData.agendaId = agenda.id;
     agendamentoData.agendaNome = agenda.nome;
     agendamentoData.endereco = agenda.endereco;
-    
+
     console.log("--- mostrarPaginaAgendamento ---", agenda.nome);
     try {
         // 1. Visibilidade básica
@@ -776,7 +776,7 @@ function mostrarConfirmacao() {
     document.getElementById('confirmNome').textContent = agendamentoData.nome;
     document.getElementById('confirmTelefone').textContent = agendamentoData.telefone;
     document.getElementById('confirmEndereco').textContent = agendamentoData.endereco;
-    
+
     // Atualiza a data e hora em que este comprovante/recibo foi gerado na tela/impressão
     const agora = new Date();
     const dataGerado = agora.toLocaleDateString('pt-BR') + ' às ' + agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -827,13 +827,13 @@ async function cancelarAgendamento() {
             // Remove do array local imediatamente
             const idx = agendamentos.findIndex(a => a.codigo === agendamentoData.codigo);
             if (idx !== -1) agendamentos.splice(idx, 1);
-            
+
             // Guarda código antes de limpar
             const codigoParaDeletar = agendamentoData.codigo;
-            
+
             // Aguarda excluir na nuvem antes de navegar
             const sucesso = await salvarDadosCloud('deleteAgendamento', { codigo: codigoParaDeletar });
-            
+
             hideLoading();
             if (sucesso) {
                 showToast('Agendamento cancelado com sucesso.');
@@ -887,7 +887,7 @@ function pesquisarAgendamento() {
     }
 
     // Filtrar agendamentos por nome, telefone ou código E PELA AGENDA ATUAL
-    const filtered = agendamentos.filter(a => 
+    const filtered = agendamentos.filter(a =>
         String(a.agendaId) === String(currentPublicAgenda ? currentPublicAgenda.id : '') && (
             (a.nome || '').toLowerCase().includes(query) ||
             (a.telefone || '').includes(query) ||
@@ -925,7 +925,7 @@ function exibirAgendamentoConsultado(codigo) {
     const found = agendamentos.find(a => a.codigo === codigo);
     if (found) {
         agendamentoData = { ...found };
-        
+
         // CORREÇÃO: Repopular nome da agenda e endereço caso venham vazios da nuvem
         if (!agendamentoData.agendaNome || !agendamentoData.endereco) {
             const agenda = agendas.find(g => String(g.id) === String(found.agendaId));
@@ -934,12 +934,12 @@ function exibirAgendamentoConsultado(codigo) {
                 agendamentoData.endereco = agenda.endereco;
             }
         }
-        
+
         // Garantir que a tela de confirmação mostre os dados
         mostrarConfirmacao();
         const titleEl = document.getElementById('confirmAgendaTitle');
         if (titleEl) titleEl.textContent = (agendamentoData.agendaNome || 'Pedido de Agendamento').toUpperCase();
-        
+
         // Scroll para o topo
         window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
@@ -1060,7 +1060,7 @@ function renderAgendas(filtered = null) {
         const userObj = usuarios.find(u => u.login && u.login.toLowerCase() === loginUser);
         let agendasPermitidas = (userObj && userObj.agendasPermitidas) || [];
         if (typeof agendasPermitidas === 'string') {
-            try { agendasPermitidas = JSON.parse(agendasPermitidas); } catch(e) { agendasPermitidas = []; }
+            try { agendasPermitidas = JSON.parse(agendasPermitidas); } catch (e) { agendasPermitidas = []; }
         }
         console.log('[Agenda Profile] login:', loginUser, 'agendasPermitidas:', agendasPermitidas);
         data = data.filter(a => agendasPermitidas.map(Number).includes(Number(a.id)));
@@ -1291,10 +1291,10 @@ function openModal(type, extraId = null) {
                 <p style="margin-bottom: 15px; color: #666;">Selecione os usuários que poderão visualizar e pesquisar nesta agenda:</p>
                 <div id="listaUsuariosAtribuir" style="max-height: 300px; overflow-y: auto;">
                     ${usuariosAgenda.map(u => {
-                        let agendasP = u.agendasPermitidas || [];
-                        if (typeof agendasP === 'string') { try { agendasP = JSON.parse(agendasP); } catch(e) { agendasP = []; } }
-                        const temPermissao = agendasP.map(Number).includes(Number(extraId));
-                        return `
+                let agendasP = u.agendasPermitidas || [];
+                if (typeof agendasP === 'string') { try { agendasP = JSON.parse(agendasP); } catch (e) { agendasP = []; } }
+                const temPermissao = agendasP.map(Number).includes(Number(extraId));
+                return `
                         <label style="display: flex; align-items: center; gap: 10px; padding: 10px; border-bottom: 1px solid #eee; cursor: pointer;">
                             <input type="checkbox" data-user-id="${u.id}" ${temPermissao ? 'checked' : ''} style="width: 18px; height: 18px;">
                             <div>
@@ -1303,7 +1303,7 @@ function openModal(type, extraId = null) {
                             </div>
                         </label>
                     `;
-                    }).join('')}
+            }).join('')}
                 </div>
             `;
         }
@@ -1536,7 +1536,7 @@ function abrirModalAtribuirUsuarios(agendaId) {
 
 async function salvarUsuariosAgenda(agendaId) {
     const checkboxes = document.querySelectorAll('#listaUsuariosAtribuir input[type="checkbox"]');
-    
+
     closeModal();
     showToast('Salvando permissões na nuvem...', 'info');
 
@@ -1548,7 +1548,7 @@ async function salvarUsuariosAgenda(agendaId) {
 
         let agendasP = user.agendasPermitidas || [];
         if (typeof agendasP === 'string') {
-            try { agendasP = JSON.parse(agendasP); } catch(e) { agendasP = []; }
+            try { agendasP = JSON.parse(agendasP); } catch (e) { agendasP = []; }
         }
         agendasP = agendasP.map(Number);
 
@@ -1567,7 +1567,7 @@ async function salvarUsuariosAgenda(agendaId) {
 
     // Invalida o cache local para forçar carregamento da nuvem no próximo F5 ou solicitação
     localStorage.removeItem('dadosApp');
-    
+
     showToast('Permissões salvas com sucesso!');
     // Recarrega os dados da nuvem para garantir sincronia total
     solicitarDadosCloud();
@@ -1588,7 +1588,7 @@ function pesquisarAdminAgendamento(agendaId) {
         return;
     }
 
-    const filtered = agendamentos.filter(a => 
+    const filtered = agendamentos.filter(a =>
         String(a.agendaId) === String(agendaId) && (
             (a.nome || '').toLowerCase().includes(query) ||
             (a.telefone || '').includes(query) ||
@@ -1636,14 +1636,14 @@ async function excluirAgendamentoAdmin(codigo, agendaId) {
         // Array local
         const idx = agendamentos.findIndex(a => a.codigo === codigo);
         if (idx !== -1) agendamentos.splice(idx, 1);
-        
+
         // Nuvem
         const sucesso = await salvarDadosCloud('deleteAgendamento', { codigo: codigo });
         hideLoading();
         if (sucesso) {
             showToast('Agendamento excluído com sucesso.');
             pesquisarAdminAgendamento(agendaId);
-            renderAgendas(); 
+            renderAgendas();
         } else {
             showToast('Erro ao excluir na nuvem.', 'error');
         }
@@ -1654,7 +1654,7 @@ function imprimirAgendamentoInvisivel(codigo) {
     const found = agendamentos.find(a => a.codigo === codigo);
     if (found) {
         agendamentoData = { ...found };
-        
+
         if (!agendamentoData.agendaNome || !agendamentoData.endereco) {
             const agenda = agendas.find(g => String(g.id) === String(found.agendaId));
             if (agenda) {
@@ -1662,11 +1662,11 @@ function imprimirAgendamentoInvisivel(codigo) {
                 agendamentoData.endereco = agenda.endereco;
             }
         }
-        
+
         // Popula as informações da página oculta do recibo
         const titleEl = document.getElementById('confirmAgendaTitle');
         if (titleEl) titleEl.textContent = (agendamentoData.agendaNome || 'Pedido de Agendamento').toUpperCase();
-        
+
         document.getElementById('confirmCodigo').textContent = agendamentoData.codigo;
         document.getElementById('confirmAgenda').textContent = agendamentoData.agendaNome;
         document.getElementById('confirmData').textContent = limparData(agendamentoData.data);
@@ -1675,7 +1675,7 @@ function imprimirAgendamentoInvisivel(codigo) {
         document.getElementById('confirmNome').textContent = agendamentoData.nome;
         document.getElementById('confirmTelefone').textContent = agendamentoData.telefone;
         document.getElementById('confirmEndereco').textContent = agendamentoData.endereco;
-        
+
         // Atualiza a data e hora em que este comprovante/recibo foi gerado na impressão
         const agora = new Date();
         const dataGerado = agora.toLocaleDateString('pt-BR') + ' às ' + agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -1683,7 +1683,7 @@ function imprimirAgendamentoInvisivel(codigo) {
         if (reciboBody) {
             reciboBody.setAttribute('data-date', dataGerado);
         }
-        
+
         // Como no print_styles.css forçaremos o `#confirmacaoPage` aparecer, 
         // apenas invocamos o print() sem fechar ou trocar nenhuma tela admin.
         setTimeout(() => {
@@ -1696,16 +1696,16 @@ function imprimirAgendamentoInvisivel(codigo) {
 
 function visualizarAgendamentoAdmin(codigo) {
     closeModal();
-    
+
     // Oculta completamente a interface do administrador para o recibo parecer uma "nova aba" limpa
     const adminPage = document.getElementById('adminPage');
     if (adminPage) adminPage.style.display = 'none';
-    
+
     const globalHeader = document.querySelector('.global-header');
     if (globalHeader) globalHeader.style.display = 'none';
 
     exibirAgendamentoConsultado(codigo);
-    
+
     // Insere o botão de voltar ao Admin no cabeçalho
     let btnVoltar = document.getElementById('btnVoltarAdminRecibo');
     if (!btnVoltar) {
@@ -1724,13 +1724,13 @@ function voltarParaMenuAdmin() {
     // Restaura a interface do administrador
     const adminPage = document.getElementById('adminPage');
     if (adminPage) adminPage.style.display = '';
-    
+
     const globalHeader = document.querySelector('.global-header');
     if (globalHeader) globalHeader.style.display = '';
 
     mostrarAdmin();
     document.getElementById('confirmacaoPage').classList.remove('active');
-    
+
     const btn = document.getElementById('btnVoltarAdminRecibo');
     if (btn) btn.remove();
 }
@@ -2638,12 +2638,12 @@ function mostrarModalGeral(titulo, html) {
     const overlay = document.getElementById('modalOverlay');
     const title = document.getElementById('modalTitle');
     const body = document.getElementById('modalBody');
-    
+
     if (overlay && title && body) {
         title.innerText = titulo;
         body.innerHTML = html;
         overlay.style.display = 'flex';
-        
+
         // Esconde botões do footer se for apenas informativo
         const footer = overlay.querySelector('.modal-footer');
         if (footer) footer.style.display = 'none';
@@ -2652,7 +2652,7 @@ function mostrarModalGeral(titulo, html) {
 
 // Sobrescrever closeModal para garantir que o footer volte ao normal
 const originalCloseModal = window.closeModal;
-window.closeModal = function() {
+window.closeModal = function () {
     const footer = document.querySelector('.modal-overlay .modal-footer');
     if (footer) footer.style.display = 'flex';
     if (typeof originalCloseModal === 'function') originalCloseModal();
