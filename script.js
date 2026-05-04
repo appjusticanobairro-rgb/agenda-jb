@@ -887,6 +887,19 @@ function editarAgendamento() {
         var titleEl = document.getElementById('publicAgendaNome');
         if (titleEl) titleEl.textContent = agenda.nome;
         carregarServicosPublic(agenda);
+        // Popular campo de senha se a agenda tiver
+        var rowSenha = document.getElementById('publicSenhaRow');
+        var inputSenha = document.getElementById('publicSenha');
+        if (rowSenha && inputSenha) {
+            var senhaStr = agenda.senha ? String(agenda.senha).trim() : '';
+            if (senhaStr && senhaStr.toLowerCase() !== 'null') {
+                rowSenha.style.display = 'block';
+                inputSenha.value = senhaStr;
+            } else {
+                rowSenha.style.display = 'none';
+                inputSenha.value = '';
+            }
+        }
         if (agendamentoData.servico) {
             var servicoSelect = document.getElementById('publicServicoSelect');
             for (var i = 0; i < servicoSelect.options.length; i++) {
