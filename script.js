@@ -868,15 +868,28 @@ function editarAgendamento() {
     console.log("Retornando ao formulário para edição...");
     document.getElementById('confirmacaoPage').classList.remove('active');
     document.getElementById('agendamentoPage').classList.add('active');
-    document.getElementById('step2Content').style.display = 'none';
+
+    // Mostrar Step 1 (Dados do Agendamento)
     document.getElementById('step1Content').style.display = 'block';
-    document.getElementById('step2Indicator').classList.remove('active');
+    document.getElementById('step2Content').style.display = 'none';
     document.getElementById('step1Indicator').classList.add('active');
+    document.getElementById('step2Indicator').classList.remove('active');
     document.getElementById('btnVoltar').style.display = 'none';
     document.getElementById('btnProximo').style.display = 'flex';
     document.getElementById('btnConfirmar').style.display = 'none';
+
     var agendaId = agendamentoData.agendaId;
     var agenda = agendas.find(function (a) { return String(a.id) === String(agendaId); });
+
+    // Preencher campos do Step 2 tambem para quando avancar
+    if (agendamentoData.nome) document.getElementById('publicNome').value = agendamentoData.nome;
+    if (agendamentoData.telefone && agendamentoData.telefone !== 'Não informado') document.getElementById('publicTelefone').value = agendamentoData.telefone;
+    document.getElementById('termosAceite').checked = true;
+    var cpfRow = document.getElementById('publicCPF');
+    if (cpfRow) cpfRow.closest('.form-row-single').style.display = 'none';
+    var emailRow = document.getElementById('publicEmail');
+    if (emailRow) emailRow.closest('.form-row-single').style.display = 'none';
+
     if (agenda) {
         var selectAgenda = document.getElementById('publicAgendaSelect');
         if (selectAgenda) {
@@ -886,7 +899,10 @@ function editarAgendamento() {
         }
         var titleEl = document.getElementById('publicAgendaNome');
         if (titleEl) titleEl.textContent = agenda.nome;
+        var subtitleEl = document.getElementById('publicAgendaSubtitle');
+        if (subtitleEl) subtitleEl.textContent = 'Editando agendamento de: ' + (agendamentoData.nome || '---') + ' - Codigo: ' + (agendamentoData.codigo || '---');
         carregarServicosPublic(agenda);
+
         // Popular campo de senha se a agenda tiver
         var rowSenha = document.getElementById('publicSenhaRow');
         var inputSenha = document.getElementById('publicSenha');
@@ -900,6 +916,8 @@ function editarAgendamento() {
                 inputSenha.value = '';
             }
         }
+
+        // Pre-selecionar servico
         if (agendamentoData.servico) {
             var servicoSelect = document.getElementById('publicServicoSelect');
             for (var i = 0; i < servicoSelect.options.length; i++) {
@@ -909,7 +927,10 @@ function editarAgendamento() {
                 }
             }
         }
+
         gerarDiasDisponiveis(agenda);
+
+        // Pre-selecionar data e horario
         if (agendamentoData.data) {
             var diaBtn = document.querySelector('.dia-btn[data-data="' + agendamentoData.data + '"]');
             if (diaBtn) {
@@ -930,7 +951,8 @@ function editarAgendamento() {
             }
         }
     }
-    showToast('Ajuste os dados e avance novamente.');
+
+    showToast('Editando agendamento de ' + (agendamentoData.nome || '---') + '. Altere os dados necessarios.');
 }
 
 async function cancelarAgendamento() {
