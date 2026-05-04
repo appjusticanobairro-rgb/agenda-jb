@@ -478,13 +478,42 @@ function mostrarPaginaAgendamento(agenda) {
     }
 }
 
-// Handler para o onchange do HTML (se necessário)
+// Handler para o onchange do HTML - carrega serviços da agenda selecionada
 function carregarServicos() {
-    const hash = window.location.hash;
-    if (hash && hash.length > 1) {
-        // Se estiver em rota pública, não faz nada (está travado)
+    var selectAgenda = document.getElementById('publicAgendaSelect');
+    if (!selectAgenda) return;
+    var agendaId = selectAgenda.value;
+    var selectServico = document.getElementById('publicServicoSelect');
+    if (!agendaId) {
+        selectServico.innerHTML = '<option value="">Selecione um serviço</option>';
+        document.getElementById('diasGrid').innerHTML = '';
+        document.getElementById('horariosGrid').innerHTML = '';
         return;
     }
+    var agenda = agendas.find(function (a) { return String(a.id) === String(agendaId); });
+    if (!agenda) return;
+    selectServico.innerHTML = '<option value="">Selecione um serviço</option>';
+    agenda.servicos.forEach(function (sName) {
+        var sObj = servicosDisponiveis.find(function (s) { return s.nome === sName; });
+        if (sObj) {
+            selectServico.innerHTML += '<option value="' + sObj.nome + '" data-duracao="' + sObj.duracao + '">' + sObj.nome + '</option>';
+        }
+    });
+    var rowSenha = document.getElementById('publicSenhaRow');
+    var inputSenha = document.getElementById('publicSenha');
+    if (rowSenha && inputSenha) {
+        var senhaStr = agenda.senha ? String(agenda.senha).trim() : '';
+        if (senhaStr && senhaStr.toLowerCase() !== 'null') {
+            rowSenha.style.display = 'block';
+            inputSenha.value = '';
+        } else {
+            rowSenha.style.display = 'none';
+            inputSenha.value = '';
+        }
+    }
+    gerarDiasDisponiveis(agenda);
+    document.getElementById('horariosGrid').innerHTML = '';
+    document.getElementById('horarioHelp').textContent = 'Selecione uma data para ver os horarios';
 }
 
 // window.addEventListener('hashchange', verificarRota); // Removido redundante
@@ -795,27 +824,99 @@ function mostrarConfirmacao() {
 
 function novoAgendamento() {
     if (confirm('Deseja iniciar um novo agendamento?')) {
-        window.location.reload();
+        var adminPage = document.getElementById('adminPage');
+        if (adminPage && adminPage.style.display !== 'none') {
+            agendamentoData = {};
+            document.getElementById('confirmacaoPage').classList.remove('active');
+            document.getElementById('agendamentoPage').classList.add('active');
+            document.getElementById('desativadaPage').classList.remove('active');
+            document.body.classList.add('no-header');
+            var selectAgenda = document.getElementById('publicAgendaSelect');
+            selectAgenda.innerHTML = '<option value="">Selecione uma agenda</option>';
+            selectAgenda.disabled = false;
+            agendas.filter(function (a) { return a.status === 'active'; }).forEach(function (a) {
+                selectAgenda.innerHTML += '<option value="' + a.id + '">' + a.nome + '</option>';
+            });
+            document.getElementById('publicServicoSelect').innerHTML = '<option value="">Selecione um serviço</option>';
+            document.getElementById('diasGrid').innerHTML = '';
+            document.getElementById('horariosGrid').innerHTML = '';
+            document.getElementById('publicNome').value = '';
+            document.getElementById('publicTelefone').value = '';
+            document.getElementById('publicSenha').value = '';
+            document.getElementById('termosAceite').checked = false;
+            document.getElementById('publicSenhaRow').style.display = 'none';
+            document.getElementById('publicAgendaNome').textContent = 'NOVO AGENDAMENTO';
+            document.getElementById('publicAgendaSubtitle').textContent = 'Selecione uma agenda para começar';
+            document.getElementById('step1Content').style.display = 'block';
+            document.getElementById('step2Content').style.display = 'none';
+            document.getElementById('step1Indicator').classList.add('active');
+            document.getElementById('step2Indicator').classList.remove('active');
+            document.getElementById('btnVoltar').style.display = 'none';
+            document.getElementById('btnProximo').style.display = 'flex';
+            document.getElementById('btnConfirmar').style.display = 'none';
+            if (adminPage) adminPage.style.display = 'none';
+            var globalHeader = document.querySelector('.global-header');
+            if (globalHeader) globalHeader.style.display = 'none';
+            showToast('Selecione uma agenda e preencha os dados.');
+        } else {
+            window.location.reload();
+        }
     }
 }
 
 function editarAgendamento() {
     console.log("Retornando ao formulário para edição...");
-    // 1. Visibilidade de páginas
     document.getElementById('confirmacaoPage').classList.remove('active');
     document.getElementById('agendamentoPage').classList.add('active');
-
-    // 2. Reseta Step UI
     document.getElementById('step2Content').style.display = 'none';
     document.getElementById('step1Content').style.display = 'block';
     document.getElementById('step2Indicator').classList.remove('active');
     document.getElementById('step1Indicator').classList.add('active');
-
-    // 3. Reseta botões
     document.getElementById('btnVoltar').style.display = 'none';
     document.getElementById('btnProximo').style.display = 'flex';
     document.getElementById('btnConfirmar').style.display = 'none';
-
+    var agendaId = agendamentoData.agendaId;
+    var agenda = agendas.find(function (a) { return String(a.id) === String(agendaId); });
+    if (agenda) {
+        var selectAgenda = document.getElementById('publicAgendaSelect');
+        if (selectAgenda) {
+            selectAgenda.innerHTML = '<option value="' + agenda.id + '" selected>' + agenda.nome + '</option>';
+            selectAgenda.value = String(agenda.id);
+            selectAgenda.disabled = false;
+        }
+        var titleEl = document.getElementById('publicAgendaNome');
+        if (titleEl) titleEl.textContent = agenda.nome;
+        carregarServicosPublic(agenda);
+        if (agendamentoData.servico) {
+            var servicoSelect = document.getElementById('publicServicoSelect');
+            for (var i = 0; i < servicoSelect.options.length; i++) {
+                if (servicoSelect.options[i].value === agendamentoData.servico) {
+                    servicoSelect.value = agendamentoData.servico;
+                    break;
+                }
+            }
+        }
+        gerarDiasDisponiveis(agenda);
+        if (agendamentoData.data) {
+            var diaBtn = document.querySelector('.dia-btn[data-data="' + agendamentoData.data + '"]');
+            if (diaBtn) {
+                diaBtn.classList.add('selected');
+                document.getElementById('dataHelp').textContent = 'Data selecionada: ' + agendamentoData.data.split('-').reverse().join('/');
+                document.getElementById('dataHelp').style.color = 'var(--success)';
+                gerarHorariosDisponiveis(agendamentoData.data);
+                if (agendamentoData.horario) {
+                    var horarioBtns = document.querySelectorAll('.horario-btn');
+                    for (var j = 0; j < horarioBtns.length; j++) {
+                        if (horarioBtns[j].textContent.trim() === agendamentoData.horario) {
+                            horarioBtns[j].classList.add('selected');
+                            document.getElementById('horarioHelp').textContent = 'Horario: ' + agendamentoData.horario;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
     showToast('Ajuste os dados e avance novamente.');
 }
 
@@ -870,6 +971,53 @@ function switchPublicSection(section) {
         if (secPesquisa) secPesquisa.style.display = 'block';
     }
 }
+
+// Adicionar botão "Voltar Admin" na página de agendamento quando acessada pelo admin
+function adicionarBotaoVoltarAdmin() {
+    const btnVoltarAdmin = document.getElementById('btnVoltarAdminAgendamento');
+    if (!btnVoltarAdmin) {
+        const actionsDiv = document.querySelector('.public-top-bar .top-nav');
+        if (actionsDiv) {
+            // Verificar se já existe
+            if (!document.getElementById('btnVoltarAdminAgendamento')) {
+                const existingBtns = actionsDiv.querySelectorAll('.btn-top-nav');
+                if (existingBtns.length < 3) {
+                    actionsDiv.insertAdjacentHTML('beforeend', `
+                        <div id="btnVoltarAdminAgendamento" class="btn-top-nav" onclick="voltarParaMenuAdmin()" title="Voltar ao Admin" style="background: #0d1b3e; color: white;">
+                            <i class="fas fa-arrow-left"></i>
+                        </div>
+                    `);
+                }
+            }
+        }
+    }
+}
+
+// Sobrescrever voltarParaMenuAdmin para também lidar com a página de agendamento
+const originalVoltarAdmin = voltarParaMenuAdmin;
+window.voltarParaMenuAdmin = function () {
+    // Restaura a interface do administrador
+    const adminPage = document.getElementById('adminPage');
+    if (adminPage) adminPage.style.display = '';
+
+    const globalHeader = document.querySelector('.global-header');
+    if (globalHeader) globalHeader.style.display = '';
+
+    document.getElementById('agendamentoPage').classList.remove('active');
+    document.getElementById('confirmacaoPage').classList.remove('active');
+
+    // Garantir que admin aparece
+    if (typeof mostrarAdmin === 'function') {
+        mostrarAdmin();
+    }
+
+    // Remover botões de voltar admin
+    const btnAgendamento = document.getElementById('btnVoltarAdminAgendamento');
+    if (btnAgendamento) btnAgendamento.remove();
+
+    const btnRecibo = document.getElementById('btnVoltarAdminRecibo');
+    if (btnRecibo) btnRecibo.remove();
+};
 
 function pesquisarAgendamento() {
     const input = document.getElementById('publicSearchInput');
