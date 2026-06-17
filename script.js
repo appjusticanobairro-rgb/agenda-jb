@@ -628,7 +628,9 @@ function gerarHorariosDisponiveis(dataStr) {
     }
 
     configSlots.forEach(s => {
-        slots = slots.concat(gerarSlotsPorDuracao(s.inicio, s.fim, duracao));
+        if (!s.bloqueado) {
+            slots = slots.concat(gerarSlotsPorDuracao(s.inicio, s.fim, duracao));
+        }
     });
 
     let html = '';
@@ -1571,7 +1573,7 @@ function getAgendaForm() {
                 </div>
                 <div id="slots_${d}" style="flex: 1; display: flex; flex-direction: column; gap: 10px;">
                     ${slots.map((s) => `
-                        <div class="slot-row" style="display: flex; align-items: center; gap: 15px;">
+                        <div class="slot-row${s.bloqueado ? ' slot-bloqueado' : ''}" style="display: flex; align-items: center; gap: 15px;">
                             <div style="flex: 1; background: white; padding: 5px 10px; border: 1px solid #dee2e6; border-radius: 6px; display: flex; align-items: center;">
                                 <input type="time" class="form-control slot-start" value="${s.inicio}" style="border: none; height: 30px; box-shadow: none; background: transparent; width: 100%;">
                             </div>
@@ -1580,6 +1582,7 @@ function getAgendaForm() {
                             </div>
                             <div style="display: flex; gap: 5px;">
                                 <button type="button" class="icon-btn" onclick="addSlot('${d}')" style="color: #00bfa5; background: #e0f2f1; border-radius: 4px; width: 32px; height: 32px; display: grid; place-items: center;"><i class="fas fa-plus"></i></button>
+                                <button type="button" class="icon-btn btn-bloquear-slot" data-bloqueado="${s.bloqueado ? '1' : '0'}" onclick="toggleBloqueioSlot(this)" style="background: ${s.bloqueado ? '#fff3e0' : '#fff8e1'}; color: ${s.bloqueado ? '#e65100' : '#f9a825'}; border-radius: 4px; width: 32px; height: 32px; display: grid; place-items: center;" title="${s.bloqueado ? 'Horário bloqueado (clique para desbloquear)' : 'Clique para bloquear este horário'}"><i class="fas ${s.bloqueado ? 'fa-lock' : 'fa-lock-open'}"></i></button>
                                 <button type="button" class="icon-btn" onclick="this.closest('.slot-row').remove()" style="color: #ef5350; background: #ffebee; border-radius: 4px; width: 32px; height: 32px; display: grid; place-items: center;"><i class="fas fa-trash-alt"></i></button>
                             </div>
                         </div>
@@ -1628,10 +1631,33 @@ function addSlot(d, inicio = '', fim = '') {
         </div>
         <div style="display: flex; gap: 5px;">
             <button type="button" class="icon-btn" onclick="addSlot('${d}')" style="color: #00bfa5; background: #e0f2f1; border-radius: 4px; width: 32px; height: 32px; display: grid; place-items: center;"><i class="fas fa-plus"></i></button>
+            <button type="button" class="icon-btn btn-bloquear-slot" data-bloqueado="0" onclick="toggleBloqueioSlot(this)" style="background: #fff8e1; color: #f9a825; border-radius: 4px; width: 32px; height: 32px; display: grid; place-items: center;" title="Clique para bloquear este horário"><i class="fas fa-lock-open"></i></button>
             <button type="button" class="icon-btn" onclick="this.closest('.slot-row').remove()" style="color: #ef5350; background: #ffebee; border-radius: 4px; width: 32px; height: 32px; display: grid; place-items: center;"><i class="fas fa-trash-alt"></i></button>
         </div>
     `;
     container.appendChild(div);
+}
+
+function toggleBloqueioSlot(btn) {
+    const bloqueado = btn.dataset.bloqueado === '1';
+    const novo = !bloqueado;
+    btn.dataset.bloqueado = novo ? '1' : '0';
+    const icon = btn.querySelector('i');
+    if (novo) {
+        icon.classList.remove('fa-lock-open');
+        icon.classList.add('fa-lock');
+        btn.style.background = '#fff3e0';
+        btn.style.color = '#e65100';
+        btn.title = 'Horário bloqueado (clique para desbloquear)';
+        btn.closest('.slot-row').classList.add('slot-bloqueado');
+    } else {
+        icon.classList.remove('fa-lock');
+        icon.classList.add('fa-lock-open');
+        btn.style.background = '#fff8e1';
+        btn.style.color = '#f9a825';
+        btn.title = 'Clique para bloquear este horário';
+        btn.closest('.slot-row').classList.remove('slot-bloqueado');
+    }
 }
 
 async function saveAgenda() {
@@ -1647,7 +1673,8 @@ async function saveAgenda() {
         const slotsDivs = document.querySelectorAll(`#slots_${d} .slot-row`);
         const slots = Array.from(slotsDivs).map(row => ({
             inicio: row.querySelector('.slot-start').value,
-            fim: row.querySelector('.slot-end').value
+            fim: row.querySelector('.slot-end').value,
+            bloqueado: row.querySelector('.btn-bloquear-slot')?.dataset.bloqueado === '1'
         })).filter(s => s.inicio && s.fim);
 
         horarioAtendimento[d] = {
