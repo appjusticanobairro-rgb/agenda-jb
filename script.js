@@ -154,6 +154,9 @@ function processarDadosApp(data) {
 
     console.log("Usuarios carregados com agendasPermitidas:", usuarios.map(u => ({ login: u.login, agendas: u.agendasPermitidas })));
     console.log("Dados processados com sucesso.");
+    if (typeof limparReservasExpiradasNuvem === 'function') {
+        limparReservasExpiradasNuvem();
+    }
 }
 
 // Salvar dados na Nuvem (Google Sheets via Apps Script)
@@ -218,6 +221,19 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 // Sincronização via hashchange (navegação entre páginas)
 window.addEventListener('hashchange', () => verificarRota());
+
+// Ao fechar/sair da página: cancelar reserva temporária ativa (se existir)
+window.addEventListener('beforeunload', function () {
+    if (agendamentoData && agendamentoData.codigo && agendamentoData.nome === 'RESERVA_TEMPORARIA') {
+        // Usa navigator.sendBeacon para envio garantido mesmo no fechamento
+        const payload = JSON.stringify({
+            action: 'deleteAgendamento',
+            data: { codigo: agendamentoData.codigo }
+        });
+        navigator.sendBeacon(API_URL, new Blob([payload], { type: 'text/plain;charset=utf-8' }));
+        console.log('Reserva temporária cancelada ao fechar a página:', agendamentoData.codigo);
+    }
+});
 
 // --- ROTEAMENTO ---
 function verificarRota() {
@@ -607,6 +623,78 @@ function selecionarDia(elemento, data) {
     gerarHorariosDisponiveis(data);
 }
 
+/**
+ * Conta os agendamentos reais (excluindo reservas temporárias expiradas e opcionalmente um código próprio)
+ * para um determinado slot (agendaId + data + horario).
+ * @param {string} agendaId
+ * @param {string} dataStr - formato YYYY-MM-DD
+ * @param {string} horario - formato HH:MM
+ * @param {string} [ignorarCodigo] - código de reserva a ignorar na contagem (própria reserva ativa)
+ */
+function countAppointmentsForSlot(agendaId, dataStr, horario, ignorarCodigo) {
+    const agora = Date.now();
+    const EXPIRACAO_MS = 5 * 60 * 1000; // 5 minutos
+
+    return agendamentos.filter(a => {
+        if (String(a.agendaId) !== String(agendaId)) return false;
+        if (a.data !== dataStr) return false;
+        if (a.horario !== horario) return false;
+
+        // Ignorar o próprio hold do usuário atual
+        if (ignorarCodigo && a.codigo === ignorarCodigo) return false;
+
+        // Se for uma reserva temporária, verificar se ainda está dentro do prazo
+        if (typeof a.email === 'string' && a.email.startsWith('TEMP_HOLD_')) {
+            const ts = parseInt(a.email.replace('TEMP_HOLD_', ''), 10);
+            if (!isNaN(ts) && (agora - ts) > EXPIRACAO_MS) {
+                return false; // Reserva expirada — não conta
+            }
+        }
+
+        return true;
+    }).length;
+}
+
+/**
+ * Limpa as reservas temporárias expiradas do array local `agendamentos`
+ * e remove-as da nuvem em background.
+ */
+async function limparReservasExpiradasNuvem() {
+    const agora = Date.now();
+    const EXPIRACAO_MS = 5 * 60 * 1000; // 5 minutos
+
+    const expiradas = agendamentos.filter(a => {
+        if (typeof a.email !== 'string' || !a.email.startsWith('TEMP_HOLD_')) return false;
+        const ts = parseInt(a.email.replace('TEMP_HOLD_', ''), 10);
+        return !isNaN(ts) && (agora - ts) > EXPIRACAO_MS;
+    });
+
+    if (expiradas.length === 0) return;
+
+    console.log(`Limpando ${expiradas.length} reserva(s) temporária(s) expirada(s)...`);
+
+    // Remove localmente
+    expiradas.forEach(a => {
+        const idx = agendamentos.findIndex(ag => ag.codigo === a.codigo);
+        if (idx !== -1) agendamentos.splice(idx, 1);
+    });
+
+    // Remove na nuvem em background (sem bloquear a UI)
+    for (const a of expiradas) {
+        try {
+            await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'deleteAgendamento', data: { codigo: a.codigo } }),
+                redirect: 'follow'
+            });
+            console.log(`Reserva expirada ${a.codigo} removida da nuvem.`);
+        } catch (e) {
+            console.warn(`Falha ao remover reserva expirada ${a.codigo}:`, e);
+        }
+    }
+}
+
 function gerarHorariosDisponiveis(dataStr) {
     const horariosGrid = document.getElementById('horariosGrid');
     const agendaId = document.getElementById('publicAgendaSelect').value;
@@ -644,11 +732,13 @@ function gerarHorariosDisponiveis(dataStr) {
     let html = '';
     slots.forEach(horario => {
         // Validation: Capacity
-        const count = agendamentos.filter(a =>
-            String(a.agendaId) === String(agendaId) &&
-            a.data === dataStr &&
-            a.horario === horario
-        ).length;
+        const count = typeof countAppointmentsForSlot === 'function'
+            ? countAppointmentsForSlot(agendaId, dataStr, horario)
+            : agendamentos.filter(a =>
+                String(a.agendaId) === String(agendaId) &&
+                a.data === dataStr &&
+                a.horario === horario
+            ).length;
 
         const max = parseInt(agenda.maxAgendamentosHorario) || 1;
         const isFull = count >= max;
@@ -696,7 +786,7 @@ function selecionarHorario(elm, horario) {
     document.getElementById('horarioHelp').textContent = `Horário: ${horario}`;
 }
 
-function proximoStep() {
+async function proximoStep() {
     const agendaId = document.getElementById('publicAgendaSelect').value;
     const servico = document.getElementById('publicServicoSelect').value;
     const agenda = agendas.find(a => a.id == agendaId);
@@ -715,10 +805,58 @@ function proximoStep() {
     if (!agendamentoData.data) return showToast('Selecione uma data', 'error');
     if (!agendamentoData.horario) return showToast('Selecione um horário', 'error');
 
+    showLoading();
+
+    // 1. Force a fresh load from the database to ensure we have real-time slots
+    const loaded = await carregarDados();
+    if (!loaded) {
+        hideLoading();
+        showToast('Erro ao verificar horários na nuvem. Verifique sua conexão.', 'error');
+        return;
+    }
+
+    // 2. Perform capacity validation using the fresh data
+    const count = typeof countAppointmentsForSlot === 'function' 
+        ? countAppointmentsForSlot(agendaId, agendamentoData.data, agendamentoData.horario)
+        : agendamentos.filter(a =>
+            String(a.agendaId) === String(agendaId) &&
+            a.data === agendamentoData.data &&
+            a.horario === agendamentoData.horario
+        ).length;
+
+    const max = parseInt(agenda.maxAgendamentosHorario, 10) || 1;
+    if (count >= max) {
+        hideLoading();
+        showToast('Este horário acabou de ser preenchido por outro usuário! Selecione outro horário.', 'error');
+        gerarHorariosDisponiveis(agendamentoData.data);
+        return;
+    }
+
+    // 3. Generate reservation code and temporary hold object
+    agendamentoData.codigo = Math.random().toString(36).substr(2, 7).toUpperCase();
     agendamentoData.agendaId = agendaId;
     agendamentoData.servico = servico;
     agendamentoData.agendaNome = agenda.nome;
     agendamentoData.endereco = agenda.endereco;
+    agendamentoData.nome = "RESERVA_TEMPORARIA";
+    agendamentoData.telefone = "TEMP";
+    agendamentoData.cpf = "-";
+    agendamentoData.email = "TEMP_HOLD_" + Date.now();
+
+    // 4. Save temp reservation locally and to cloud
+    agendamentos.push({ ...agendamentoData });
+    const salvo = await salvarDadosCloud('saveAgendamento', agendamentoData);
+    if (!salvo) {
+        // If save failed, remove from local and show error
+        const idx = agendamentos.findIndex(a => a.codigo === agendamentoData.codigo);
+        if (idx !== -1) agendamentos.splice(idx, 1);
+        agendamentoData.codigo = undefined;
+        hideLoading();
+        showToast('Falha ao reservar horário. Tente novamente.', 'error');
+        return;
+    }
+
+    hideLoading();
 
     // Config UI for Step 2
     document.getElementById('step1Content').style.display = 'none';
@@ -736,7 +874,21 @@ function proximoStep() {
     document.getElementById('btnConfirmar').style.display = 'flex';
 }
 
-function voltarStep() {
+async function voltarStep() {
+    // Se voltar da Etapa 2 e tínhamos criado uma reserva temporária, vamos excluí-la na nuvem e localmente
+    if (agendamentoData.codigo && agendamentoData.nome === "RESERVA_TEMPORARIA") {
+        showLoading();
+        const codigoParaDeletar = agendamentoData.codigo;
+        // Remove localmente
+        const idx = agendamentos.findIndex(a => a.codigo === codigoParaDeletar);
+        if (idx !== -1) agendamentos.splice(idx, 1);
+        agendamentoData.codigo = undefined;
+        agendamentoData.nome = undefined;
+        // Exclui na nuvem em background
+        salvarDadosCloud('deleteAgendamento', { codigo: codigoParaDeletar });
+        hideLoading();
+    }
+
     document.getElementById('step1Content').style.display = 'block';
     document.getElementById('step2Content').style.display = 'none';
     document.getElementById('step1Indicator').classList.add('active');
@@ -756,19 +908,29 @@ async function confirmarAgendamento() {
     // Show loading
     showLoading();
 
-    // Final Capacity Check
+    // Final Capacity Check (ignoring our own hold code)
     const agenda = agendas.find(a => a.id == agendamentoData.agendaId);
-    const count = agendamentos.filter(a =>
-        String(a.agendaId) === String(agenda.id) &&
-        a.data === agendamentoData.data &&
-        a.horario === agendamentoData.horario &&
-        a.codigo !== agendamentoData.codigo
-    ).length;
+    const count = typeof countAppointmentsForSlot === 'function'
+        ? countAppointmentsForSlot(agenda.id, agendamentoData.data, agendamentoData.horario, agendamentoData.codigo)
+        : agendamentos.filter(a =>
+            String(a.agendaId) === String(agenda.id) &&
+            a.data === agendamentoData.data &&
+            a.horario === agendamentoData.horario &&
+            a.codigo !== agendamentoData.codigo
+        ).length;
 
     const max = parseInt(agenda.maxAgendamentosHorario, 10) || 1;
     if (count >= max) {
         hideLoading();
         showToast('Horário esgotado! Selecione outro horário.', 'error');
+        // Delete the temporary reservation because it has expired or was overridden
+        if (agendamentoData.codigo) {
+            const codigoParaDeletar = agendamentoData.codigo;
+            const idx = agendamentos.findIndex(a => a.codigo === codigoParaDeletar);
+            if (idx !== -1) agendamentos.splice(idx, 1);
+            agendamentoData.codigo = undefined;
+            salvarDadosCloud('deleteAgendamento', { codigo: codigoParaDeletar });
+        }
         voltarStep();
         gerarHorariosDisponiveis(agendamentoData.data);
         return;
@@ -779,14 +941,12 @@ async function confirmarAgendamento() {
     agendamentoData.cpf = '-';
     agendamentoData.email = '-';
 
-    // Se não tem código (novo agendamento), gera um
-    if (!agendamentoData.codigo) {
-        agendamentoData.codigo = Math.random().toString(36).substr(2, 7).toUpperCase();
-        agendamentos.push(agendamentoData);
+    // Atualiza no array local
+    const idx = agendamentos.findIndex(a => a.codigo === agendamentoData.codigo);
+    if (idx !== -1) {
+        agendamentos[idx] = { ...agendamentoData };
     } else {
-        // Se já tem código, atualiza no array local também
-        const idx = agendamentos.findIndex(a => a.codigo === agendamentoData.codigo);
-        if (idx !== -1) agendamentos[idx] = { ...agendamentoData };
+        agendamentos.push({ ...agendamentoData });
     }
 
     // Aguarda salvar na nuvem antes de mostrar o recibo
@@ -794,7 +954,6 @@ async function confirmarAgendamento() {
 
     hideLoading();
     mostrarConfirmacao();
-
 }
 
 function mostrarConfirmacao() {
@@ -2936,3 +3095,82 @@ window.closeModal = function () {
         if (overlay) overlay.style.display = 'none';
     }
 };
+
+// Limpar reservas temporárias expiradas do banco de dados na nuvem
+function limparReservasExpiradasNuvem() {
+    const agora = Date.now();
+    const maxAgeInMs = 5 * 60 * 1000; // 5 minutos
+    
+    if (typeof agendamentos === 'undefined' || !agendamentos) return;
+    
+    const expirados = agendamentos.filter(a => {
+        if (a.nome === "RESERVA_TEMPORARIA") {
+            const emailStr = String(a.email || '');
+            if (emailStr.startsWith("TEMP_HOLD_")) {
+                const timestamp = parseInt(emailStr.replace("TEMP_HOLD_", ""), 10);
+                if (!isNaN(timestamp)) {
+                    return (agora - timestamp) > maxAgeInMs;
+                }
+            }
+        }
+        return false;
+    });
+    
+    if (expirados.length > 0) {
+        console.log(`Limpando ${expirados.length} reservas temporárias expiradas...`);
+        expirados.forEach(async (a) => {
+            // Remove do local array
+            const idx = agendamentos.findIndex(x => x.codigo === a.codigo);
+            if (idx !== -1) agendamentos.splice(idx, 1);
+            // Chama a deleção na nuvem em background
+            try {
+                await salvarDadosCloud('deleteAgendamento', { codigo: a.codigo });
+            } catch (e) {
+                console.error("Erro ao deletar reserva temporaria expirada na nuvem", e);
+            }
+        });
+    }
+}
+
+// Contabilizar agendamentos ativos em um horário específico, desconsiderando reservas temporárias expiradas
+function countAppointmentsForSlot(agendaId, dataStr, horario, excludeCodigo = null) {
+    const agora = Date.now();
+    const maxAgeInMs = 5 * 60 * 1000; // 5 minutos
+    
+    if (typeof agendamentos === 'undefined' || !agendamentos) return 0;
+    
+    return agendamentos.filter(a => {
+        if (String(a.agendaId) !== String(agendaId)) return false;
+        if (a.data !== dataStr) return false;
+        if (a.horario !== horario) return false;
+        if (excludeCodigo && a.codigo === excludeCodigo) return false;
+        
+        // Se for reserva temporária, checar se expirou (limite de 5 minutos)
+        if (a.nome === "RESERVA_TEMPORARIA") {
+            const emailStr = String(a.email || '');
+            if (emailStr.startsWith("TEMP_HOLD_")) {
+                const timestamp = parseInt(emailStr.replace("TEMP_HOLD_", ""), 10);
+                if (!isNaN(timestamp)) {
+                    const ageInMs = agora - timestamp;
+                    if (ageInMs > maxAgeInMs) {
+                        return false; // Expirada, não contar
+                    }
+                }
+            }
+        }
+        return true;
+    }).length;
+}
+
+// Limpar reserva temporária ativa em caso de fechamento inesperado da aba/janela
+window.addEventListener('beforeunload', function () {
+    if (typeof agendamentoData !== 'undefined' && agendamentoData && agendamentoData.codigo && agendamentoData.nome === "RESERVA_TEMPORARIA") {
+        const body = JSON.stringify({ action: 'deleteAgendamento', data: { codigo: agendamentoData.codigo } });
+        fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: body,
+            keepalive: true
+        });
+    }
+});
