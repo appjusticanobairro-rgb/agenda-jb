@@ -670,6 +670,30 @@
             </div>
         </div>
 
+        <!-- Modal Horário Indisponível -->
+        <div class="modal-overlay" id="modalHorarioIndisponivel" style="display:none; z-index: 9999;" onclick="if(event.target===this) fecharModalHorarioIndisponivel()">
+            <div class="modal" onclick="event.stopPropagation()" style="max-width: 420px; text-align: center; padding: 0; border-radius: 16px; overflow: hidden;">
+                <div style="background: linear-gradient(135deg, #ff6b6b, #ee5a24); padding: 28px 24px 20px; color: #fff;">
+                    <div style="font-size: 48px; margin-bottom: 10px;">⏰</div>
+                    <h2 style="margin: 0; font-size: 1.2rem; font-weight: 700; letter-spacing: 0.5px;">Horário Indisponível</h2>
+                </div>
+                <div style="padding: 24px 28px 12px; color: #444; font-size: 0.97rem; line-height: 1.6;">
+                    Não foi possível agendar esse horário.<br>
+                    <strong>Selecione outro horário para realizar o agendamento.</strong>
+                </div>
+                <div style="padding: 12px 28px 28px;">
+                    <button
+                        onclick="fecharModalHorarioIndisponivel()"
+                        style="width:100%; padding: 13px; background: linear-gradient(135deg, #ff6b6b, #ee5a24); color: #fff; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; letter-spacing: 0.3px; transition: opacity 0.2s;"
+                        onmouseover="this.style.opacity='0.88'"
+                        onmouseout="this.style.opacity='1'"
+                        id="btnOkHorarioIndisponivel">
+                        Ok, escolher outro horário
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Toast Container -->
         <div class="toast-container" id="toastContainer"></div>
 

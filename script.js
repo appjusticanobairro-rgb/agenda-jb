@@ -827,8 +827,8 @@ async function proximoStep() {
     const max = parseInt(agenda.maxAgendamentosHorario, 10) || 1;
     if (count >= max) {
         hideLoading();
-        showToast('Este horário acabou de ser preenchido por outro usuário! Selecione outro horário.', 'error');
         gerarHorariosDisponiveis(agendamentoData.data);
+        abrirModalHorarioIndisponivel();
         return;
     }
 
@@ -922,7 +922,6 @@ async function confirmarAgendamento() {
     const max = parseInt(agenda.maxAgendamentosHorario, 10) || 1;
     if (count >= max) {
         hideLoading();
-        showToast('Horário esgotado! Selecione outro horário.', 'error');
         // Delete the temporary reservation because it has expired or was overridden
         if (agendamentoData.codigo) {
             const codigoParaDeletar = agendamentoData.codigo;
@@ -933,6 +932,7 @@ async function confirmarAgendamento() {
         }
         voltarStep();
         gerarHorariosDisponiveis(agendamentoData.data);
+        abrirModalHorarioIndisponivel();
         return;
     }
 
@@ -2950,6 +2950,24 @@ function showToast(msg, type = 'success') {
     document.getElementById('toastContainer').appendChild(t);
     setTimeout(() => t.remove(), 3000);
 }
+
+function abrirModalHorarioIndisponivel() {
+    const modal = document.getElementById('modalHorarioIndisponivel');
+    if (modal) {
+        modal.style.display = 'flex';
+        // Foco no botão para acessibilidade
+        setTimeout(() => {
+            const btn = document.getElementById('btnOkHorarioIndisponivel');
+            if (btn) btn.focus();
+        }, 100);
+    }
+}
+
+function fecharModalHorarioIndisponivel() {
+    const modal = document.getElementById('modalHorarioIndisponivel');
+    if (modal) modal.style.display = 'none';
+}
+
 function imprimirRecibo() {
     const body = document.querySelector(".recibo-body");
     const now = new Date();
