@@ -96,6 +96,14 @@ async function carregarDados(isBackground = false) {
             if (adminPage && adminPage.style.display !== 'none' && typeof renderAgendas === 'function') {
                 renderAgendas();
             }
+            // Se for página pública e estiver selecionando horário, atualizar horários disponíveis silenciosamente com dados novos
+            const agendamentoPage = document.getElementById('agendamentoPage');
+            if (agendamentoPage && agendamentoPage.classList.contains('active') && typeof agendamentoData !== 'undefined' && agendamentoData.data) {
+                const step1Content = document.getElementById('step1Content');
+                if (step1Content && step1Content.style.display !== 'none' && typeof gerarHorariosDisponiveis === 'function') {
+                    gerarHorariosDisponiveis(agendamentoData.data);
+                }
+            }
         }
 
         // Sessão do usuário local
@@ -2646,7 +2654,22 @@ function limparData(val) {
     if (s.includes('T')) {
         const d = new Date(val);
         if (!isNaN(d.getTime())) {
-            return d.getDate().toString().padStart(2, '0') + '/' + (d.getMonth() + 1).toString().padStart(2, '0') + '/' + d.getFullYear();
+            try {
+                const formatter = new Intl.DateTimeFormat('pt-BR', {
+                    timeZone: 'America/Sao_Paulo',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                });
+                const parts = formatter.formatToParts(d);
+                const year = parts.find(p => p.type === 'year').value;
+                const month = parts.find(p => p.type === 'month').value;
+                const day = parts.find(p => p.type === 'day').value;
+                return `${day}/${month}/${year}`;
+            } catch (e) {
+                console.error("Erro no Intl de data exibição", e);
+                return d.getDate().toString().padStart(2, '0') + '/' + (d.getMonth() + 1).toString().padStart(2, '0') + '/' + d.getFullYear();
+            }
         }
     }
     const parts = s.split('-');
@@ -2660,9 +2683,22 @@ function limparHorario(val) {
     if (s.includes('T')) {
         const d = new Date(val);
         if (!isNaN(d.getTime())) {
-            // Rounding for potential historical seconds (e.g. 12:06:28)
-            const rounded = new Date(d.getTime() + 30000);
-            return rounded.getHours().toString().padStart(2, '0') + ':' + rounded.getMinutes().toString().padStart(2, '0');
+            try {
+                const formatter = new Intl.DateTimeFormat('pt-BR', {
+                    timeZone: 'America/Sao_Paulo',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                });
+                const parts = formatter.formatToParts(d);
+                const hour = parts.find(p => p.type === 'hour').value;
+                const minute = parts.find(p => p.type === 'minute').value;
+                return `${hour}:${minute}`;
+            } catch (e) {
+                console.error("Erro no Intl de hora exibição", e);
+                const rounded = new Date(d.getTime() + 30000);
+                return rounded.getHours().toString().padStart(2, '0') + ':' + rounded.getMinutes().toString().padStart(2, '0');
+            }
         }
     }
     return s.substring(0, 5);
@@ -2681,7 +2717,22 @@ function limparDataISO(val) {
     if (s.includes('T')) {
         const d = new Date(val);
         if (!isNaN(d.getTime())) {
-            return d.getFullYear() + '-' + (d.getMonth() + 1).toString().padStart(2, '0') + '-' + d.getDate().toString().padStart(2, '0');
+            try {
+                const formatter = new Intl.DateTimeFormat('pt-BR', {
+                    timeZone: 'America/Sao_Paulo',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                });
+                const parts = formatter.formatToParts(d);
+                const year = parts.find(p => p.type === 'year').value;
+                const month = parts.find(p => p.type === 'month').value;
+                const day = parts.find(p => p.type === 'day').value;
+                return `${year}-${month}-${day}`;
+            } catch (e) {
+                console.error("Erro no Intl de data ISO", e);
+                return d.getFullYear() + '-' + (d.getMonth() + 1).toString().padStart(2, '0') + '-' + d.getDate().toString().padStart(2, '0');
+            }
         }
     }
     return s;
@@ -2693,8 +2744,22 @@ function limparHoraISO(val) {
     if (s.includes('T')) {
         const d = new Date(val);
         if (!isNaN(d.getTime())) {
-            const rounded = new Date(d.getTime() + 30000);
-            return rounded.getHours().toString().padStart(2, '0') + ':' + rounded.getMinutes().toString().padStart(2, '0');
+            try {
+                const formatter = new Intl.DateTimeFormat('pt-BR', {
+                    timeZone: 'America/Sao_Paulo',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                });
+                const parts = formatter.formatToParts(d);
+                const hour = parts.find(p => p.type === 'hour').value;
+                const minute = parts.find(p => p.type === 'minute').value;
+                return `${hour}:${minute}`;
+            } catch (e) {
+                console.error("Erro no Intl de hora ISO", e);
+                const rounded = new Date(d.getTime() + 30000);
+                return rounded.getHours().toString().padStart(2, '0') + ':' + rounded.getMinutes().toString().padStart(2, '0');
+            }
         }
     }
     return s.substring(0, 5);
